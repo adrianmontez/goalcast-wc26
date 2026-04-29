@@ -16,6 +16,7 @@ export default function Predict() {
   const [advancing, setAdvancing] = useState({});
   const [draggedTeam, setDraggedTeam] = useState(null);
   const [touchTeam, setTouchTeam] = useState(null);
+  const [selectedMobileTeam, setSelectedMobileTeam] = useState(null);
   const [showBracket, setShowBracket] = useState(false);
   const [bracketWinners, setBracketWinners] = useState(() => {
     if (typeof window === "undefined") return {};
@@ -174,6 +175,21 @@ export default function Predict() {
   const moveTeamToRank = (teamAbbr, groupId, targetRank) => {
   if (showBracket || !teamAbbr) return;
 
+  const handleMobileTap = (teamAbbr, groupId, targetRank) => {
+    if (showBracket || !teamAbbr) return;
+
+    if (!selectedMobileTeam) {
+      setSelectedMobileTeam({ teamAbbr, groupId });
+      return;
+    }
+
+    if (selectedMobileTeam.groupId === groupId) {
+      moveTeamToRank(selectedMobileTeam.teamAbbr, groupId, targetRank);
+    }
+
+    setSelectedMobileTeam(null);
+  };
+
   setRankings((current) => {
     const groupKey = `group_${groupId}`;
     const groupRanking = { ...getRanking(groupId) };
@@ -287,9 +303,12 @@ const handleTouchEnd = (groupId, targetRank) => {
                           onDrop={(e) => handleDrop(e, groupData.group, rank)}
                           onTouchStart={() => handleTouchStart(teamAbbr)}
                           onTouchEnd={() => handleTouchEnd(groupData.group, rank)}
-                          className={`border border-gray-700 rounded p-2 min-h-12 flex items-center bg-gray-900 ${
-                            !showBracket ? "hover:bg-gray-800 cursor-grab touch-none" : ""
-                          } flex-1`}
+                          onClick={() => handleMobileTap(teamAbbr, groupData.group, rank)}
+                          className={`border rounded p-2 min-h-12 flex items-center bg-gray-900 ${
+                            selectedMobileTeam?.teamAbbr === teamAbbr
+                              ? "border-yellow-400 bg-yellow-500/20"
+                              : "border-gray-700"
+                          } ${!showBracket ? "hover:bg-gray-800 cursor-grab touch-none" : ""} flex-1`}
                         >
                           <div className="flex items-center w-full select-none">
                             <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -327,7 +346,7 @@ const handleTouchEnd = (groupId, targetRank) => {
                 <h2 className="text-lg font-semibold">3rd Place Teams</h2>
               </div>
               <p className="text-xs text-gray-400 mb-4">
-                Click 8 of the 12 third-place teams to advance to the bracket.
+                Click 8 of the 12 third-place teams to advance to the Knockout Stage.
                 <span className="ml-2">({countAdvancingThirdPlace()}/8 selected)</span>
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
