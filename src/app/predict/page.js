@@ -308,14 +308,6 @@ const handleTouchEnd = (groupId, targetRank) => {
                                 <div className="text-gray-500 text-sm">Drop here</div>
                               )}
                             </div>
-
-                            <div className="ml-2 flex items-center justify-center w-8 shrink-0 text-gray-400">
-                              <div className="text-[10px] leading-none text-center space-y-0.5">
-                                <div>⋅⋅</div>
-                                <div>⋅⋅</div>
-                                <div>⋅⋅</div>
-                              </div>
-                            </div>
                           </div>
                         </div>
                       </div>
