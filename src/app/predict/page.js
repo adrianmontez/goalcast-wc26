@@ -173,7 +173,31 @@ export default function Predict() {
   };
 
   const moveTeamToRank = (teamAbbr, groupId, targetRank) => {
-  if (showBracket || !teamAbbr) return;
+    if (showBracket || !teamAbbr) return;
+
+    setRankings((current) => {
+      const groupKey = `group_${groupId}`;
+      const groupRanking = { ...getRanking(groupId) };
+
+      const currentRank = groupRanking[teamAbbr];
+
+      if (currentRank === targetRank) {
+        return current;
+      }
+
+      const teamAtTarget = Object.entries(groupRanking).find(
+        ([_, r]) => r === targetRank
+      )?.[0];
+
+      if (teamAtTarget) {
+        groupRanking[teamAtTarget] = currentRank;
+      }
+
+      groupRanking[teamAbbr] = targetRank;
+
+      return { ...current, [groupKey]: groupRanking };
+    });
+  };
 
   const handleMobileTap = (teamAbbr, groupId, targetRank) => {
     if (showBracket || !teamAbbr) return;
@@ -190,61 +214,25 @@ export default function Predict() {
     setSelectedMobileTeam(null);
   };
 
-  setRankings((current) => {
-    const groupKey = `group_${groupId}`;
-    const groupRanking = { ...getRanking(groupId) };
+  const handleDragStart = (e, teamAbbr) => {
+    if (showBracket) return;
+    setDraggedTeam(teamAbbr);
+    e.dataTransfer.effectAllowed = "move";
+  };
 
-    const currentRank = groupRanking[teamAbbr];
+  const handleDragOver = (e) => {
+    if (showBracket) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
 
-    if (currentRank === targetRank) {
-      return current;
-    }
+  const handleDrop = (e, groupId, targetRank) => {
+    if (showBracket) return;
+    e.preventDefault();
 
-    const teamAtTarget = Object.entries(groupRanking).find(
-      ([_, r]) => r === targetRank
-    )?.[0];
-
-    if (teamAtTarget) {
-      groupRanking[teamAtTarget] = currentRank;
-    }
-
-    groupRanking[teamAbbr] = targetRank;
-
-    return { ...current, [groupKey]: groupRanking };
-  });
-};
-
-const handleDragStart = (e, teamAbbr) => {
-  if (showBracket) return;
-  setDraggedTeam(teamAbbr);
-  e.dataTransfer.effectAllowed = "move";
-};
-
-const handleDragOver = (e) => {
-  if (showBracket) return;
-  e.preventDefault();
-  e.dataTransfer.dropEffect = "move";
-};
-
-const handleDrop = (e, groupId, targetRank) => {
-  if (showBracket) return;
-  e.preventDefault();
-
-  moveTeamToRank(draggedTeam, groupId, targetRank);
-  setDraggedTeam(null);
-};
-
-const handleTouchStart = (teamAbbr) => {
-  if (showBracket || !teamAbbr) return;
-  setTouchTeam(teamAbbr);
-};
-
-const handleTouchEnd = (groupId, targetRank) => {
-  if (showBracket || !touchTeam) return;
-
-  moveTeamToRank(touchTeam, groupId, targetRank);
-  setTouchTeam(null);
-};
+    moveTeamToRank(draggedTeam, groupId, targetRank);
+    setDraggedTeam(null);
+  };
 
   return (
     <main className="min-h-screen bg-black text-white p-4 pb-12">
@@ -301,8 +289,6 @@ const handleTouchEnd = (groupId, targetRank) => {
                           onDragStart={(e) => teamAbbr && handleDragStart(e, teamAbbr)}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, groupData.group, rank)}
-                          onTouchStart={() => handleTouchStart(teamAbbr)}
-                          onTouchEnd={() => handleTouchEnd(groupData.group, rank)}
                           onClick={() => handleMobileTap(teamAbbr, groupData.group, rank)}
                           className={`border rounded p-2 min-h-12 flex items-center bg-gray-900 ${
                             selectedMobileTeam?.teamAbbr === teamAbbr
