@@ -171,87 +171,64 @@ export default function Predict() {
     }
   };
 
-  const handleDragStart = (e, teamAbbr) => {
-    if (showBracket) return;
-    setDraggedTeam(teamAbbr);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOver = (e) => {
-    if (showBracket) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-  const handleDrop = (e, groupId, targetRank) => {
-    if (showBracket) return;
-    e.preventDefault();
-    if (!draggedTeam) return;
-
   const moveTeamToRank = (teamAbbr, groupId, targetRank) => {
-    if (showBracket || !teamAbbr) return;
+  if (showBracket || !teamAbbr) return;
 
-    setRankings((current) => {
-      const groupKey = `group_${groupId}`;
-      const groupRanking = { ...getRanking(groupId) };
+  setRankings((current) => {
+    const groupKey = `group_${groupId}`;
+    const groupRanking = { ...getRanking(groupId) };
 
-      const currentRank = groupRanking[teamAbbr];
+    const currentRank = groupRanking[teamAbbr];
 
-      if (currentRank === targetRank) {
-       return current;
-      }
+    if (currentRank === targetRank) {
+      return current;
+    }
 
-      const teamAtTarget = Object.entries(groupRanking).find(
-        ([_, r]) => r === targetRank
-      )?.[0];
+    const teamAtTarget = Object.entries(groupRanking).find(
+      ([_, r]) => r === targetRank
+    )?.[0];
 
-     if (teamAtTarget) {
-       groupRanking[teamAtTarget] = currentRank;
-     }
+    if (teamAtTarget) {
+      groupRanking[teamAtTarget] = currentRank;
+    }
 
-     groupRanking[teamAbbr] = targetRank;
+    groupRanking[teamAbbr] = targetRank;
 
-     return { ...current, [groupKey]: groupRanking };
-   });
- };
+    return { ...current, [groupKey]: groupRanking };
+  });
+};
 
- const handleTouchStart = (teamAbbr) => {
-   if (showBracket || !teamAbbr) return;
-   setTouchTeam(teamAbbr);
- };
+const handleDragStart = (e, teamAbbr) => {
+  if (showBracket) return;
+  setDraggedTeam(teamAbbr);
+  e.dataTransfer.effectAllowed = "move";
+};
 
- const handleTouchEnd = (groupId, targetRank) => {
-   if (showBracket || !touchTeam) return;
+const handleDragOver = (e) => {
+  if (showBracket) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+};
 
-   moveTeamToRank(touchTeam, groupId, targetRank);
-   setTouchTeam(null);
- };
+const handleDrop = (e, groupId, targetRank) => {
+  if (showBracket) return;
+  e.preventDefault();
 
-    setRankings((current) => {
-      const groupKey = `group_${groupId}`;
-      const groupRanking = { ...getRanking(groupId) };
+  moveTeamToRank(draggedTeam, groupId, targetRank);
+  setDraggedTeam(null);
+};
 
-      const currentRank = groupRanking[draggedTeam];
+const handleTouchStart = (teamAbbr) => {
+  if (showBracket || !teamAbbr) return;
+  setTouchTeam(teamAbbr);
+};
 
-      if (currentRank === targetRank) {
-        setDraggedTeam(null);
-        return current;
-      }
+const handleTouchEnd = (groupId, targetRank) => {
+  if (showBracket || !touchTeam) return;
 
-      const teamAtTarget = Object.entries(groupRanking).find(
-        ([_, r]) => r === targetRank
-      )?.[0];
-
-      if (teamAtTarget) {
-        groupRanking[teamAtTarget] = currentRank;
-      }
-
-      groupRanking[draggedTeam] = targetRank;
-
-      return { ...current, [groupKey]: groupRanking };
-    });
-
-    setDraggedTeam(null);
-  };
+  moveTeamToRank(touchTeam, groupId, targetRank);
+  setTouchTeam(null);
+};
 
   return (
     <main className="min-h-screen bg-black text-white p-4 pb-12">
@@ -310,28 +287,34 @@ export default function Predict() {
                           onDrop={(e) => handleDrop(e, groupData.group, rank)}
                           onTouchStart={() => handleTouchStart(teamAbbr)}
                           onTouchEnd={() => handleTouchEnd(groupData.group, rank)}
+                          className={`border border-gray-700 rounded p-2 min-h-12 flex items-center bg-gray-900 ${
+                            !showBracket ? "hover:bg-gray-800 cursor-grab touch-none" : ""
+                          } flex-1`}
                         >
-                          <div className="flex items-center justify-center flex-1 px-1">
-                            {teamAbbr ? (
-                              <div className="flex items-center justify-center gap-2 w-full select-none">
-                                <Image
-                                  src={`/flags/${teamAbbr}.png`}
-                                  alt={`${teamAbbr} flag`}
-                                  width={20}
-                                  height={14}
-                                  className="object-cover"
-                                />
-                                <span className="text-sm font-semibold">{teamAbbr}</span>
+                          <div className="flex items-center w-full select-none">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              {teamAbbr ? (
+                                <>
+                                  <Image
+                                    src={`/flags/${teamAbbr}.png`}
+                                    alt={`${teamAbbr} flag`}
+                                    width={20}
+                                    height={14}
+                                    className="object-cover shrink-0"
+                                  />
+                                  <span className="text-sm font-semibold truncate">{teamAbbr}</span>
+                                </>
+                              ) : (
+                                <div className="text-gray-500 text-sm">Drop here</div>
+                              )}
+                            </div>
+
+                            <div className="ml-2 flex items-center justify-center w-8 shrink-0 text-gray-400">
+                              <div className="text-[10px] leading-none text-center space-y-0.5">
+                                <div>⋅⋅</div>
+                                <div>⋅⋅</div>
+                                <div>⋅⋅</div>
                               </div>
-                            ) : (
-                              <div className="text-gray-500 text-sm">Drop here</div>
-                            )}
-                          </div>
-                          <div className="ml-2 flex items-center justify-center w-8 text-gray-400 select-none">
-                            <div className="text-[10px] leading-none text-center space-y-0.5">
-                              <div>⋅⋅</div>
-                              <div>⋅⋅</div>
-                              <div>⋅⋅</div>
                             </div>
                           </div>
                         </div>
