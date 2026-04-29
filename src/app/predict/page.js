@@ -15,6 +15,7 @@ export default function Predict() {
   });
   const [advancing, setAdvancing] = useState({});
   const [draggedTeam, setDraggedTeam] = useState(null);
+  const [touchTeam, setTouchTeam] = useState(null);
   const [showBracket, setShowBracket] = useState(false);
   const [bracketWinners, setBracketWinners] = useState(() => {
     if (typeof window === "undefined") return {};
@@ -186,6 +187,45 @@ export default function Predict() {
     e.preventDefault();
     if (!draggedTeam) return;
 
+  const moveTeamToRank = (teamAbbr, groupId, targetRank) => {
+    if (showBracket || !teamAbbr) return;
+
+    setRankings((current) => {
+      const groupKey = `group_${groupId}`;
+      const groupRanking = { ...getRanking(groupId) };
+
+      const currentRank = groupRanking[teamAbbr];
+
+      if (currentRank === targetRank) {
+       return current;
+      }
+
+      const teamAtTarget = Object.entries(groupRanking).find(
+        ([_, r]) => r === targetRank
+      )?.[0];
+
+     if (teamAtTarget) {
+       groupRanking[teamAtTarget] = currentRank;
+     }
+
+     groupRanking[teamAbbr] = targetRank;
+
+     return { ...current, [groupKey]: groupRanking };
+   });
+ };
+
+ const handleTouchStart = (teamAbbr) => {
+   if (showBracket || !teamAbbr) return;
+   setTouchTeam(teamAbbr);
+ };
+
+ const handleTouchEnd = (groupId, targetRank) => {
+   if (showBracket || !touchTeam) return;
+
+   moveTeamToRank(touchTeam, groupId, targetRank);
+   setTouchTeam(null);
+ };
+
     setRankings((current) => {
       const groupKey = `group_${groupId}`;
       const groupRanking = { ...getRanking(groupId) };
@@ -237,7 +277,7 @@ export default function Predict() {
           </button>
         </div>
 
-        <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {groups.map((groupData) => {
             const ranking = getRanking(groupData.group);
             const thirdPlaceTeam = getThirdPlaceTeam(groupData.group);
@@ -268,7 +308,8 @@ export default function Predict() {
                           onDragStart={(e) => teamAbbr && handleDragStart(e, teamAbbr)}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, groupData.group, rank)}
-                          className={`border border-gray-700 rounded p-2 min-h-12 flex items-center bg-gray-900 ${!showBracket ? 'hover:bg-gray-800 cursor-grab' : ''} flex-1`}
+                          onTouchStart={() => handleTouchStart(teamAbbr)}
+                          onTouchEnd={() => handleTouchEnd(groupData.group, rank)}
                         >
                           <div className="flex items-center justify-center flex-1 px-1">
                             {teamAbbr ? (
@@ -326,7 +367,7 @@ export default function Predict() {
                       key={groupData.group}
                       type="button"
                       onClick={() => canToggle && toggleThirdPlace(groupData.group, teamAbbr)}
-                      className={`border rounded p-3 text-left transition ${selected ? 'border-yellow-400 bg-yellow-500/15' : 'border-gray-700 bg-gray-900 hover:border-white'} ${!canToggle ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                      className={`border rounded p-3 text-left transition ${selected ? 'border-yellow-400 bg-yellow-500/15' : 'border-gray-700 bg-gray-900 hover:border-white'} ${!canToggle ? 'opacity-60 cursor-grab touch-none' : ''}flex-1`}
                     >
                       <div className="text-xs text-gray-400 mb-1">3{groupData.group}</div>
                       <div className="flex items-center gap-2 text-lg font-semibold">
