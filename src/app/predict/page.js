@@ -239,8 +239,8 @@ export default function Predict() {
       <Image
         src="/images/goalcast_trophy.png"
         alt="GoalCast Trophy"
-        width={50}
-        height={50}
+        width={40}
+        height={40}
         className="absolute top-4 right-4 object-contain"
       />
       <h1 className="text-2xl font-bold mb-4">2026 World Cup Predictions</h1>
