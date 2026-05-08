@@ -185,11 +185,20 @@ export default function Schedule() {
                             disabled={votingMatch === match.id}
                             className={
                               myVotes[match.id] === match.home
-                                ? "border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                                : "border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                                ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
+                                : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
                             }
                           >
-                            {match.home}{" "}
+                            <Image
+                              src={`/flags/${match.home}.png`}
+                              alt={`${match.home} flag`}
+                              width={18}
+                              height={12}
+                              className="object-cover"
+                            />
+
+                            <span>{match.home}</span>
+
                             <span className="text-gray-300">
                               ({getVoteCount(match.id, match.home)})
                             </span>
@@ -200,11 +209,20 @@ export default function Schedule() {
                             disabled={votingMatch === match.id}
                             className={
                               myVotes[match.id] === match.away
-                                ? "border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                                : "border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                                ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
+                                : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
                             }
                           >
-                            {match.away}{" "}
+                            <Image
+                              src={`/flags/${match.away}.png`}
+                              alt={`${match.away} flag`}
+                              width={18}
+                              height={12}
+                              className="object-cover"
+                            />
+
+                            <span>{match.away}</span>
+
                             <span className="text-gray-300">
                               ({getVoteCount(match.id, match.away)})
                             </span>
