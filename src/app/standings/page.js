@@ -66,7 +66,7 @@ export default function Standings() {
         </h2>
 
         <p className="text-xs sm:text-sm text-gray-400 mb-4">
-          Top 2 teams from each group advance to the knockout stage, along with the 8 best 3rd place teams.
+          The top 2 teams from each group advance to the knockout stage, along with the 8 best 3rd place teams.
         </p>
 
         <div className="space-y-6">
