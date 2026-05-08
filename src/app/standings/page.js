@@ -2,21 +2,46 @@ import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { groups } from "@/data/wc2026Data";
 
+// Lower number = higher manual ranking if teams are still tied
+const manualOrderOverrides = {
+  // Example:
+  // USA: 1,
+  // CAN: 2,
+  // MEX: 3,
+};
+
+function getManualOrder(team, index) {
+  return manualOrderOverrides[team.abbr] ?? index + 1;
+}
+
+function sortStandingsTeams(teams) {
+  return [...teams].sort((a, b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    if (b.gd !== a.gd) return b.gd - a.gd;
+    if (b.gf !== a.gf) return b.gf - a.gf;
+
+    return a.manualOrder - b.manualOrder;
+  });
+}
+
 function buildInitialStandings(groups) {
   return groups.map((groupData) => ({
     group: groupData.group,
-    teams: groupData.teams.map((team) => ({
-      name: team.name,
-      abbr: team.abbr,
-      mp: 0,
-      w: 0,
-      d: 0,
-      l: 0,
-      gf: 0,
-      ga: 0,
-      gd: 0,
-      pts: 0,
-    })),
+    teams: sortStandingsTeams(
+      groupData.teams.map((team, index) => ({
+        name: team.name,
+        abbr: team.abbr,
+        mp: 0,
+        w: 0,
+        d: 0,
+        l: 0,
+        gf: 0,
+        ga: 0,
+        gd: 0,
+        pts: 0,
+        manualOrder: getManualOrder(team, index),
+      }))
+    ),
   }));
 }
 
@@ -52,24 +77,24 @@ export default function Standings() {
               </h3>
 
               <div className="overflow-x-auto">
-                <div className="min-w-[720px] border border-white">
-                  <div className="grid grid-cols-[2.5rem_1fr_repeat(8,3rem)] border-b border-white p-2 text-xs sm:text-sm font-bold">
+                <div className="min-w-[520px] border border-white">
+                  <div className="grid grid-cols-[2rem_9rem_repeat(8,2.5rem)] border-b border-white p-2 text-xs sm:text-sm font-bold">
                     <span></span>
                     <span>Team</span>
-                    <span>MP</span>
-                    <span>W</span>
-                    <span>D</span>
-                    <span>L</span>
-                    <span>GF</span>
-                    <span>GA</span>
-                    <span>GD</span>
-                    <span>Pts</span>
+                    <span className="text-center">MP</span>
+                    <span className="text-center">W</span>
+                    <span className="text-center">D</span>
+                    <span className="text-center">L</span>
+                    <span className="text-center">GF</span>
+                    <span className="text-center">GA</span>
+                    <span className="text-center">GD</span>
+                    <span className="text-center">Pts</span>
                   </div>
 
                   {groupData.teams.map((team) => (
                     <div
                       key={team.abbr}
-                      className="grid grid-cols-[2.5rem_1fr_repeat(8,3rem)] border-b border-gray-700 last:border-b-0 p-2 text-xs sm:text-sm items-center"
+                      className="grid grid-cols-[2rem_9rem_repeat(8,2.5rem)] border-b border-gray-700 last:border-b-0 p-2 text-xs sm:text-sm items-center"
                     >
                       <div className="flex items-center">
                         <Image
@@ -81,19 +106,19 @@ export default function Standings() {
                         />
                       </div>
 
-                      <div className="font-semibold">
+                      <div className="font-semibold truncate">
                         <span className="hidden sm:inline">{team.name}</span>
                         <span className="sm:hidden">{team.abbr}</span>
                       </div>
 
-                      <span>{team.mp}</span>
-                      <span>{team.w}</span>
-                      <span>{team.d}</span>
-                      <span>{team.l}</span>
-                      <span>{team.gf}</span>
-                      <span>{team.ga}</span>
-                      <span>{team.gd}</span>
-                      <span className="font-bold">{team.pts}</span>
+                      <span className="text-center">{team.mp}</span>
+                      <span className="text-center">{team.w}</span>
+                      <span className="text-center">{team.d}</span>
+                      <span className="text-center">{team.l}</span>
+                      <span className="text-center">{team.gf}</span>
+                      <span className="text-center">{team.ga}</span>
+                      <span className="text-center">{team.gd}</span>
+                      <span className="text-center font-bold">{team.pts}</span>
                     </div>
                   ))}
                 </div>
