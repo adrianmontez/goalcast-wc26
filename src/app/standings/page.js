@@ -1,8 +1,16 @@
+import Image from "next/image";
 import TabBar from "@/components/TabBar";
 
 export default function Standings() {
   return (
     <main className="min-h-screen bg-black text-white p-4 sm:p-6 pb-20 sm:pb-14">
+      <Image
+        src="/images/goalcast_trophy.png"
+        alt="GoalCast Trophy"
+        width={70}
+        height={70}
+        className="fixed top-4 right-4 object-contain"
+      />
       <h1 className="text-2xl sm:text-3xl font-bold mb-6">GoalCast WC26</h1>
 
       <section className="mb-6">
