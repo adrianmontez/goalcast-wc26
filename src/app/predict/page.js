@@ -236,6 +236,13 @@ export default function Predict() {
 
   return (
     <main className="min-h-screen bg-black text-white p-4 pb-12">
+      <Image
+        src="/images/goalcast_trophy.png"
+        alt="GoalCast Trophy"
+        width={50}
+        height={50}
+        className="fixed top-4 right-4 object-contain"
+      />
       <h1 className="text-2xl font-bold mb-4">2026 World Cup Predictions</h1>
 
       {!showBracket && (
