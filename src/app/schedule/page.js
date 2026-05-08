@@ -6,7 +6,12 @@ import TabBar from "@/components/TabBar";
 import { matches } from "@/data/wc2026Data";
 
 export default function Schedule() {
-  const [openMatches, setOpenMatches] = useState({});
+  const [openMatches, setOpenMatches] = useState(() => {
+    if (typeof window === "undefined") return {};
+
+    const savedOpenMatches = localStorage.getItem("goalcast_open_schedule_matches");
+    return savedOpenMatches ? JSON.parse(savedOpenMatches) : {};
+  });
   
   const [votes, setVotes] = useState({});
 
@@ -121,6 +126,13 @@ export default function Schedule() {
       [matchId]: !currentOpenMatches[matchId],
     }));
   }
+
+  useEffect(() => {
+    localStorage.setItem(
+      "goalcast_open_schedule_matches",
+      JSON.stringify(openMatches)
+    );
+  }, [openMatches]);
 
   useEffect(() => {
     let ignore = false;
