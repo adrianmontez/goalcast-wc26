@@ -49,7 +49,42 @@ export default function Schedule() {
 
     setVotingMatch(matchId);
 
-    await fetch("/api/match-votes", {
+    const alreadyVotedForThisTeam = myVotes[matchId] === teamAbbr;
+
+    if (alreadyVotedForThisTeam) {
+      const deleteResponse = await fetch("/api/match-votes", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          matchId,
+          voterId,
+        }),
+      });
+
+      const deleteData = await deleteResponse.json();
+
+      if (!deleteResponse.ok) {
+        console.error("Remove vote failed:", deleteData);
+        setVotingMatch(null);
+        return;
+      }
+
+      setMyVotes((current) => {
+        const updated = { ...current };
+        delete updated[matchId];
+        return updated;
+      });
+
+      const updatedCounts = await fetchVotes();
+      setVotes(updatedCounts);
+
+      setVotingMatch(null);
+      return;
+    }
+
+    const voteResponse = await fetch("/api/match-votes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -60,6 +95,14 @@ export default function Schedule() {
         voterId,
       }),
     });
+
+    const voteData = await voteResponse.json();
+
+    if (!voteResponse.ok) {
+      console.error("Vote failed:", voteData);
+      setVotingMatch(null);
+      return;
+    }
 
     setMyVotes((current) => ({
       ...current,

@@ -57,3 +57,26 @@ export async function POST(request) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(request) {
+  const { matchId, voterId } = await request.json();
+
+  if (!matchId || !voterId) {
+    return NextResponse.json(
+      { error: "Missing matchId or voterId" },
+      { status: 400 }
+    );
+  }
+
+  const { error } = await supabase
+    .from("match_votes")
+    .delete()
+    .eq("match_id", matchId)
+    .eq("voter_id", voterId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
