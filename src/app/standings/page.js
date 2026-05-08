@@ -77,8 +77,8 @@ export default function Standings() {
               </h3>
 
               <div className="overflow-x-auto">
-                <div className="min-w-[520px] border border-white">
-                  <div className="grid grid-cols-[2rem_9rem_repeat(8,2.5rem)] border-b border-white p-2 text-xs sm:text-sm font-bold">
+                <div className="min-w-[560px] w-full border border-white">
+                  <div className="grid grid-cols-[2rem_7rem_repeat(8,minmax(2.25rem,1fr))] border-b border-white p-2 text-xs sm:text-sm font-bold">
                     <span></span>
                     <span>Team</span>
                     <span className="text-center">MP</span>
@@ -94,7 +94,7 @@ export default function Standings() {
                   {groupData.teams.map((team) => (
                     <div
                       key={team.abbr}
-                      className="grid grid-cols-[2rem_9rem_repeat(8,2.5rem)] border-b border-gray-700 last:border-b-0 p-2 text-xs sm:text-sm items-center"
+                      className="grid grid-cols-[2rem_7rem_repeat(8,minmax(2.25rem,1fr))] border-b border-gray-700 last:border-b-0 p-2 text-xs sm:text-sm items-center"
                     >
                       <div className="flex items-center">
                         <Image
