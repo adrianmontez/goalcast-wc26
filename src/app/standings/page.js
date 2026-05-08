@@ -7,8 +7,8 @@ export default function Standings() {
       <Image
         src="/images/goalcast_trophy.png"
         alt="GoalCast Trophy"
-        width={70}
-        height={70}
+        width={50}
+        height={50}
         className="fixed top-4 right-4 object-contain"
       />
       <h1 className="text-2xl sm:text-3xl font-bold mb-6">GoalCast WC26</h1>
