@@ -251,7 +251,7 @@ export default function Predict() {
           <div>
             <h2 className="text-lg font-semibold mb-2">Group Stage</h2>
             <p className="text-xs text-gray-400">
-              Rank each team 1-4 by dragging each team to the desired position. Top 2 automatically advance.
+              Rank each team 1-4. Top 2 automatically advance.
             </p>
           </div>
           <button
