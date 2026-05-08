@@ -421,10 +421,20 @@ export default function Predict() {
               </div>
               <div className="mt-4 flex justify-center">
                 <button
-                  onClick={() => setShowBracket(true)}
-                  className="bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
+                  disabled={countAdvancingThirdPlace() !== 8}
+                  onClick={() => {
+                    if (countAdvancingThirdPlace() !== 8) return;
+                    setShowBracket(true);
+                  }}
+                  className={
+                    countAdvancingThirdPlace() === 8
+                      ? "bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
+                      : "bg-gray-700 text-gray-400 px-4 py-2 rounded font-semibold cursor-not-allowed"
+                  }
                 >
-                  Lock In Picks
+                  {countAdvancingThirdPlace() === 8
+                    ? "Lock In Picks"
+                    : `Choose ${8 - countAdvancingThirdPlace()} more`}
                 </button>
               </div>
             </div>
@@ -437,10 +447,13 @@ export default function Predict() {
         <section className="p-3">
           <div className="mb-6 flex justify-center gap-4">
             <button
-              onClick={() => setShowBracket(false)}
+              onClick={() => {
+                setShowBracket(false);
+                setBracketWinners({});
+              }}
               className="bg-gray-700 text-white px-4 py-2 rounded font-semibold hover:bg-gray-600"
             >
-              Edit Group Play Picks
+              Edit Group Stage Picks
             </button>
             <button
               onClick={() => setBracketWinners({})}
