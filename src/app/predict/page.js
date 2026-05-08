@@ -327,7 +327,14 @@ export default function Predict() {
                   {[1, 2, 3, 4].map((rank) => {
                     const teamAbbr = getTeamAtRank(groupData.group, rank);
                     return (
-                      <div key={rank} className={`flex gap-2 items-center ${rank <= 2 ? 'bg-yellow-500/20 rounded-xl p-1' : ''}`}>
+                      <div
+                        key={rank}
+                        className={`flex gap-2 items-center ${
+                          rank <= 2
+                            ? "bg-yellow-500/20 border border-yellow-400 rounded-xl p-1 shadow-[0_0_8px_rgba(250,204,21,0.45)]"
+                            : ""
+                        }`}
+                      >
                         <span className="font-semibold text-white min-w-4 text-sm">
                           {rank}{groupData.group}
                         </span>
