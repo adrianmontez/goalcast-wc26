@@ -24,13 +24,13 @@ export default function Schedule() {
   const groupKeys = Object.keys(groupedMatches).sort();
 
   return (
-    <main className="min-h-screen bg-black text-white p-4 sm:p-6 pb-12">
+    <main className="relative min-h-screen bg-black text-white p-4 sm:p-6 pb-12">
       <Image
         src="/images/goalcast_soccerball.png"
         alt="GoalCast Soccer Ball"
-        width={50}
-        height={50}
-        className="fixed top-4 right-4 object-contain"
+        width={40}
+        height={40}
+        className="absolute top-4 right-4 object-contain"
       />
 
       <h1 className="text-2xl sm:text-3xl font-bold mb-2">Match Schedule</h1>
