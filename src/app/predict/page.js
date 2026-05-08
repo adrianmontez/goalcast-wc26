@@ -17,7 +17,11 @@ export default function Predict() {
   const [draggedTeam, setDraggedTeam] = useState(null);
   const [touchTeam, setTouchTeam] = useState(null);
   const [selectedMobileTeam, setSelectedMobileTeam] = useState(null);
-  const [showBracket, setShowBracket] = useState(false);
+  const [showBracket, setShowBracket] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const saved = localStorage.getItem("wc2026_predict_view");
+    return saved === "bracket";
+  });
   const [bracketWinners, setBracketWinners] = useState(() => {
     if (typeof window === "undefined") return {};
     const saved = localStorage.getItem("wc2026_bracket");
@@ -32,6 +36,13 @@ export default function Predict() {
   useEffect(() => {
     localStorage.setItem("wc2026_bracket", JSON.stringify(bracketWinners));
   }, [bracketWinners]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "wc2026_predict_view",
+      showBracket ? "bracket" : "groups"
+    );
+  }, [showBracket]);
 
   const getAdvancingThirdPlaceTeams = () => {
     const teams = [];
@@ -179,6 +190,11 @@ export default function Predict() {
       const groupKey = `group_${groupId}`;
       const groupRanking = { ...getRanking(groupId) };
 
+      // Prevent moving a team into a group it does not belong to
+      if (!(teamAbbr in groupRanking)) {
+        return current;
+      }
+
       const currentRank = groupRanking[teamAbbr];
 
       if (currentRank === targetRank) {
@@ -214,9 +230,14 @@ export default function Predict() {
     setSelectedMobileTeam(null);
   };
 
-  const handleDragStart = (e, teamAbbr) => {
+  const handleDragStart = (e, teamAbbr, groupId) => {
     if (showBracket) return;
-    setDraggedTeam(teamAbbr);
+
+    setDraggedTeam({
+      teamAbbr,
+      groupId,
+    });
+
     e.dataTransfer.effectAllowed = "move";
   };
 
@@ -230,7 +251,15 @@ export default function Predict() {
     if (showBracket) return;
     e.preventDefault();
 
-    moveTeamToRank(draggedTeam, groupId, targetRank);
+    if (!draggedTeam) return;
+
+    // Do not allow swapping teams across different groups
+    if (draggedTeam.groupId !== groupId) {
+      setDraggedTeam(null);
+      return;
+    }
+
+    moveTeamToRank(draggedTeam.teamAbbr, groupId, targetRank);
     setDraggedTeam(null);
   };
 
@@ -293,7 +322,9 @@ export default function Predict() {
                         </span>
                         <div
                           draggable={!showBracket && Boolean(teamAbbr)}
-                          onDragStart={(e) => teamAbbr && handleDragStart(e, teamAbbr)}
+                          onDragStart={(e) =>
+                            teamAbbr && handleDragStart(e, teamAbbr, groupData.group)
+                          }
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, groupData.group, rank)}
                           onClick={() => handleMobileTap(teamAbbr, groupData.group, rank)}
