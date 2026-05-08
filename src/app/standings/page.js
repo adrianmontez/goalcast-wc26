@@ -20,8 +20,9 @@ export default function Standings() {
 
         <div className="overflow-x-auto">
           <div className="min-w-[620px] border border-white">
-            <div className="grid grid-cols-9 border-b border-white p-2 text-xs sm:text-sm font-bold">
+            <div className="grid grid-cols-10 border-b border-white p-2 text-xs sm:text-sm font-bold">
               <span>Team</span>
+              <span> </span>
               <span>MP</span>
               <span>W</span>
               <span>D</span>
@@ -32,8 +33,9 @@ export default function Standings() {
               <span>Pts</span>
             </div>
 
-            <div className="grid grid-cols-9 p-2 text-xs sm:text-sm">
+            <div className="grid grid-cols-10 p-2 text-xs sm:text-sm">
               <span>Coming soon</span>
+              <span> </span>
               <span>0</span>
               <span>0</span>
               <span>0</span>
