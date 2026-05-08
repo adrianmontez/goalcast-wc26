@@ -13,7 +13,11 @@ export default function Predict() {
     const saved = localStorage.getItem("wc2026_rankings");
     return saved ? JSON.parse(saved) : {};
   });
-  const [advancing, setAdvancing] = useState({});
+  const [advancing, setAdvancing] = useState(() => {
+    if (typeof window === "undefined") return {};
+    const saved = localStorage.getItem("wc2026_advancing_third_place");
+    return saved ? JSON.parse(saved) : {};
+  });
   const [draggedTeam, setDraggedTeam] = useState(null);
   const [touchTeam, setTouchTeam] = useState(null);
   const [selectedMobileTeam, setSelectedMobileTeam] = useState(null);
@@ -36,6 +40,13 @@ export default function Predict() {
   useEffect(() => {
     localStorage.setItem("wc2026_bracket", JSON.stringify(bracketWinners));
   }, [bracketWinners]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "wc2026_advancing_third_place",
+      JSON.stringify(advancing)
+    );
+  }, [advancing]);
 
   useEffect(() => {
     localStorage.setItem(
