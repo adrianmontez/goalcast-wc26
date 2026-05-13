@@ -260,6 +260,22 @@ export default function Schedule() {
                           </button>
 
                           <button
+                            onClick={() => handleVote(match.id, "DRAW")}
+                            disabled={votingMatch === match.id}
+                            className={
+                              myVotes[match.id] === "DRAW"
+                                ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
+                                : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                            }
+                          >
+                            <span>Draw</span>
+
+                            <span className="text-gray-300">
+                              ({getVoteCount(match.id, "DRAW")})
+                            </span>
+                          </button>
+
+                          <button
                             onClick={() => handleVote(match.id, match.away)}
                             disabled={votingMatch === match.id}
                             className={
