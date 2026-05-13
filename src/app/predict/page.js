@@ -163,13 +163,18 @@ export default function Predict() {
     });
   };
 
-  const selectWinner = (matchId, winner) => {
+  const selectWinner = (matchId, winner, teamA, teamB) => {
+    // Do not allow picks until both teams are known
+    if (!teamA || !teamB) return;
+
     setBracketWinners((prev) => {
       const current = prev[matchId];
+
       if (current === winner) {
         const { [matchId]: _, ...rest } = prev;
         return rest;
       }
+
       return { ...prev, [matchId]: winner };
     });
   };
@@ -527,15 +532,20 @@ export default function Predict() {
                         const winner = bracketWinners[match.matchNumber] || null;
                         const isWinner1 = winner === team1;
                         const isWinner2 = winner === team2;
+                        const matchupReady = Boolean(team1 && team2);
 
                         return (
                           <div key={match.matchNumber} className="border border-gray-600 p-3 rounded bg-gray-900">
                             <div className="space-y-2">
                               {team1 && (
                                 <div
-                                  onClick={() => selectWinner(match.matchNumber, team1)}
+                                  onClick={() => selectWinner(match.matchNumber, team1, team1, team2)}
                                   className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                    isWinner1 ? 'bg-yellow-600 border-yellow-400' : 'hover:bg-gray-800'
+                                    isWinner1
+                                      ? "bg-yellow-600 border-yellow-400"
+                                      : matchupReady
+                                        ? "hover:bg-gray-800 cursor-pointer"
+                                        : "opacity-50 cursor-not-allowed"
                                   }`}
                                 >
                                   <Image
@@ -556,9 +566,13 @@ export default function Predict() {
                               <div className="text-center text-xs text-gray-400">vs</div>
                               {team2 && (
                                 <div
-                                  onClick={() => selectWinner(match.matchNumber, team2)}
+                                  onClick={() => selectWinner(match.matchNumber, team2, team1, team2)}
                                   className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                    isWinner2 ? 'bg-yellow-600 border-yellow-400' : 'hover:bg-gray-800'
+                                    isWinner2
+                                      ? "bg-yellow-600 border-yellow-400"
+                                      : matchupReady
+                                        ? "hover:bg-gray-800 cursor-pointer"
+                                        : "opacity-50 cursor-not-allowed"
                                   }`}
                                 >
                                   <Image
