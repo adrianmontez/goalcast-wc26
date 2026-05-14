@@ -8,6 +8,8 @@ import { matches } from "@/data/wc2026Data";
 export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
   const [openMatchesLoaded, setOpenMatchesLoaded] = useState(false);
+
+  const [scheduleView, setScheduleView] = useState("group");
   
   const [votes, setVotes] = useState({});
 
@@ -203,19 +205,173 @@ export default function Schedule() {
     return dateValue + timeValue * 60 * 1000;
   }
 
+  function groupLabel(group) {
+    return String(group).startsWith("Group") ? group : `Group ${group}`;
+  }
+
+  function timeToMinutes(time) {
+    if (!time || time === "TBD") return 9999;
+
+    const [timePart, period] = time.split(" ");
+    const [hourText, minuteText] = timePart.split(":");
+
+    let hours = Number(hourText);
+    const minutes = Number(minuteText);
+
+    if (period === "PM" && hours !== 12) {
+      hours += 12;
+    }
+
+    if (period === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return hours * 60 + minutes;
+  }
+
+  function dateAndTimeValue(match) {
+    const dateValue = new Date(match.date).getTime();
+    const safeDateValue = Number.isNaN(dateValue) ? 9999999999999 : dateValue;
+
+    return safeDateValue + timeToMinutes(match.time) * 60 * 1000;
+  }
+
   const groupedMatches = matches.reduce((acc, match) => {
-  if (!acc[match.group]) acc[match.group] = [];
-  acc[match.group].push(match);
-  return acc;
+    if (!acc[match.group]) acc[match.group] = [];
+    acc[match.group].push(match);
+    return acc;
   }, {});
 
   Object.keys(groupedMatches).forEach((group) => {
-    groupedMatches[group].sort((a, b) => {
-      return dateAndTimeValue(a) - dateAndTimeValue(b);
-    });
+    groupedMatches[group].sort((a, b) => dateAndTimeValue(a) - dateAndTimeValue(b));
   });
 
   const groupKeys = Object.keys(groupedMatches).sort();
+
+  const matchesByDateTime = [...matches].sort(
+    (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
+  );
+
+  function renderMatchCard(match) {
+    return (
+      <div key={match.id} className="border border-gray-700 p-3">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[11px] text-gray-400">{match.date}</p>
+
+          <span className="border border-gray-600 px-2 py-0.5 text-[10px] text-gray-300">
+            {groupLabel(match.group)}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Image
+              src={`/flags/${match.home}.png`}
+              alt={`${match.home} flag`}
+              width={28}
+              height={20}
+              className="object-cover"
+            />
+            <span className="font-semibold truncate">{match.home}</span>
+          </div>
+
+          <span className="text-xs text-gray-400 shrink-0">vs</span>
+
+          <div className="flex items-center justify-end gap-2 min-w-0">
+            <span className="font-semibold truncate">{match.away}</span>
+            <Image
+              src={`/flags/${match.away}.png`}
+              alt={`${match.away} flag`}
+              width={28}
+              height={20}
+              className="object-cover"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={() => toggleMatch(match.id)}
+          className="mt-2 text-xs text-gray-300 underline"
+        >
+          {openMatches[match.id] ? "Hide details" : "Show details"}
+        </button>
+
+        {openMatches[match.id] && (
+          <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
+            <p>Time: {match.time}</p>
+            <p>Stadium: {match.stadium}</p>
+
+            <div className="mt-3 border-t border-gray-700 pt-3">
+              <p className="mb-2 text-xs font-semibold text-white">
+                Who will win?
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleVote(match.id, match.home)}
+                  disabled={votingMatch === match.id}
+                  className={
+                    myVotes[match.id] === match.home
+                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
+                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                  }
+                >
+                  <Image
+                    src={`/flags/${match.home}.png`}
+                    alt={`${match.home} flag`}
+                    width={18}
+                    height={12}
+                    className="object-cover"
+                  />
+                  <span>{match.home}</span>
+                  <span className="text-gray-300">
+                    ({getVoteCount(match.id, match.home)})
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => handleVote(match.id, "DRAW")}
+                  disabled={votingMatch === match.id}
+                  className={
+                    myVotes[match.id] === "DRAW"
+                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
+                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                  }
+                >
+                  <span>Draw</span>
+                  <span className="text-gray-300">
+                    ({getVoteCount(match.id, "DRAW")})
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => handleVote(match.id, match.away)}
+                  disabled={votingMatch === match.id}
+                  className={
+                    myVotes[match.id] === match.away
+                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
+                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                  }
+                >
+                  <Image
+                    src={`/flags/${match.away}.png`}
+                    alt={`${match.away} flag`}
+                    width={18}
+                    height={12}
+                    className="object-cover"
+                  />
+                  <span>{match.away}</span>
+                  <span className="text-gray-300">
+                    ({getVoteCount(match.id, match.away)})
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <main className="relative min-h-screen bg-black text-white p-4 sm:p-6 pb-12">
@@ -233,138 +389,61 @@ export default function Schedule() {
         This page will be updated closer to the start of the tournament!
       </p>
 
-      <div className="space-y-8">
-        {groupKeys.map((group) => (
-          <section key={group} className="space-y-3">
-            <div className="pb-2 border-b border-white">
-              <h2 className="text-lg sm:text-xl font-semibold">Group {group}</h2>
-            </div>
+      <div className="mb-6 flex w-full sm:w-fit border border-white text-xs sm:text-sm">
+        <button
+          type="button"
+          onClick={() => setScheduleView("group")}
+          className={
+            scheduleView === "group"
+              ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
+              : "flex-1 sm:flex-none bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
+          }
+        >
+          View by Group
+        </button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
-              {groupedMatches[group].map((match) => (
-                <div key={match.id} className="border border-gray-700 p-3">
-                  <p className="text-[11px] text-gray-400 mb-2">
-                    {match.date}
-                  </p>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Image
-                        src={`/flags/${match.home}.png`}
-                        alt={`${match.home} flag`}
-                        width={28}
-                        height={20}
-                        className="object-cover"
-                      />
-                      <span className="font-semibold truncate">
-                        {match.home}
-                      </span>
-                    </div>
-
-                    <span className="text-xs text-gray-400 shrink-0">vs</span>
-
-                    <div className="flex items-center justify-end gap-2 min-w-0">
-                      <span className="font-semibold truncate">
-                        {match.away}
-                      </span>
-                      <Image
-                        src={`/flags/${match.away}.png`}
-                        alt={`${match.away} flag`}
-                        width={28}
-                        height={20}
-                        className="object-cover"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => toggleMatch(match.id)}
-                    className="mt-2 text-xs text-gray-300 underline"
-                  >
-                    {openMatches[match.id] ? "Hide details" : "Show details"}
-                  </button>
-
-                  {openMatches[match.id] && (
-                    <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
-                      <p>Time: {match.time}</p>
-                      <p>Stadium: {match.stadium}</p>
-                      <div className="mt-3 border-t border-gray-700 pt-3">
-                        <p className="mb-2 text-xs font-semibold text-white">Who will win?</p>
-
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => handleVote(match.id, match.home)}
-                            disabled={votingMatch === match.id}
-                            className={
-                              myVotes[match.id] === match.home
-                                ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                                : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
-                            }
-                          >
-                            <Image
-                              src={`/flags/${match.home}.png`}
-                              alt={`${match.home} flag`}
-                              width={18}
-                              height={12}
-                              className="object-cover"
-                            />
-
-                            <span>{match.home}</span>
-
-                            <span className="text-gray-300">
-                              ({getVoteCount(match.id, match.home)})
-                            </span>
-                          </button>
-
-                          <button
-                            onClick={() => handleVote(match.id, "DRAW")}
-                            disabled={votingMatch === match.id}
-                            className={
-                              myVotes[match.id] === "DRAW"
-                                ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                                : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
-                            }
-                          >
-                            <span>Draw</span>
-
-                            <span className="text-gray-300">
-                              ({getVoteCount(match.id, "DRAW")})
-                            </span>
-                          </button>
-
-                          <button
-                            onClick={() => handleVote(match.id, match.away)}
-                            disabled={votingMatch === match.id}
-                            className={
-                              myVotes[match.id] === match.away
-                                ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                                : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
-                            }
-                          >
-                            <Image
-                              src={`/flags/${match.away}.png`}
-                              alt={`${match.away} flag`}
-                              width={18}
-                              height={12}
-                              className="object-cover"
-                            />
-
-                            <span>{match.away}</span>
-
-                            <span className="text-gray-300">
-                              ({getVoteCount(match.id, match.away)})
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
+        <button
+          type="button"
+          onClick={() => setScheduleView("datetime")}
+          className={
+            scheduleView === "datetime"
+              ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
+              : "flex-1 sm:flex-none bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
+          }
+        >
+          View by Date/Time
+        </button>
       </div>
+
+      {scheduleView === "group" ? (
+  <     div className="space-y-8">
+          {groupKeys.map((group) => (
+            <section key={group} className="space-y-3">
+              <div className="pb-2 border-b border-white">
+                <h2 className="text-lg sm:text-xl font-semibold">
+                  {groupLabel(group)}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+                {groupedMatches[group].map((match) => renderMatchCard(match))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <section className="space-y-3">
+          <div className="pb-2 border-b border-white">
+            <h2 className="text-lg sm:text-xl font-semibold">
+              All Matches by Date/Time
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+            {matchesByDateTime.map((match) => renderMatchCard(match))}
+          </div>
+        </section>
+      )}
 
       <TabBar />
     </main>
