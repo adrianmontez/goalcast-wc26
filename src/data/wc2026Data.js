@@ -66,7 +66,7 @@ export const groups = [
     "group": "D",
     "teams": [
       {
-        "name": "United States of America",
+        "name": "United States",
         "abbr": "USA"
       },
       {
@@ -217,7 +217,7 @@ export const groups = [
         "abbr": "POR"
       },
       {
-        "name": "Democratic Republic of the Congo",
+        "name": "DR Congo",
         "abbr": "COD"
       },
       {
@@ -315,7 +315,7 @@ export const teams = [
     "group": "C"
   },
   {
-    "name": "United States of America",
+    "name": "United States",
     "abbr": "USA",
     "group": "D"
   },
@@ -460,7 +460,7 @@ export const teams = [
     "group": "K"
   },
   {
-    "name": "Democratic Republic of the Congo",
+    "name": "DR Congo",
     "abbr": "COD",
     "group": "K"
   },
@@ -558,7 +558,7 @@ export const teamsByAbbr = {
     "group": "C"
   },
   "USA": {
-    "name": "United States of America",
+    "name": "United States",
     "abbr": "USA",
     "group": "D"
   },
@@ -703,7 +703,7 @@ export const teamsByAbbr = {
     "group": "K"
   },
   "COD": {
-    "name": "Democratic Republic of the Congo",
+    "name": "DR Congo",
     "abbr": "COD",
     "group": "K"
   },
@@ -743,7 +743,7 @@ export const matches = [
   {
     "id": 1,
     "date": "2026-06-11",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "A",
     "stadium": "Mexico City Stadium",
     "home": "MEX",
@@ -757,7 +757,7 @@ export const matches = [
   {
     "id": 2,
     "date": "2026-06-11",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "A",
     "stadium": "Estadio Guadalajara",
     "home": "KOR",
@@ -771,7 +771,7 @@ export const matches = [
   {
     "id": 3,
     "date": "2026-06-12",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "B",
     "stadium": "Toronto Stadium",
     "home": "CAN",
@@ -785,12 +785,12 @@ export const matches = [
   {
     "id": 4,
     "date": "2026-06-12",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "D",
     "stadium": "Los Angeles Stadium",
     "home": "USA",
     "away": "PAR",
-    "homeName": "United States of America",
+    "homeName": "United States",
     "awayName": "Paraguay",
     "status": "scheduled",
     "homeScore": null,
@@ -799,7 +799,7 @@ export const matches = [
   {
     "id": 5,
     "date": "2026-06-13",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "C",
     "stadium": "Boston Stadium",
     "home": "HAI",
@@ -813,7 +813,7 @@ export const matches = [
   {
     "id": 6,
     "date": "2026-06-13",
-    "time": "TBD",
+    "time": "11:00 PM",
     "group": "D",
     "stadium": "BC Place Vancouver",
     "home": "AUS",
@@ -827,7 +827,7 @@ export const matches = [
   {
     "id": 7,
     "date": "2026-06-13",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "C",
     "stadium": "New York New Jersey Stadium",
     "home": "BRA",
@@ -841,7 +841,7 @@ export const matches = [
   {
     "id": 8,
     "date": "2026-06-13",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "B",
     "stadium": "San Francisco Bay Area Stadium",
     "home": "QAT",
@@ -855,7 +855,7 @@ export const matches = [
   {
     "id": 9,
     "date": "2026-06-14",
-    "time": "TBD",
+    "time": "6:00 PM",
     "group": "E",
     "stadium": "Philadelphia Stadium",
     "home": "CIV",
@@ -869,7 +869,7 @@ export const matches = [
   {
     "id": 10,
     "date": "2026-06-14",
-    "time": "TBD",
+    "time": "12:00 PM",
     "group": "E",
     "stadium": "Houston Stadium",
     "home": "GER",
@@ -883,7 +883,7 @@ export const matches = [
   {
     "id": 11,
     "date": "2026-06-14",
-    "time": "TBD",
+    "time": "3:00 PM",
     "group": "F",
     "stadium": "Dallas Stadium",
     "home": "NED",
@@ -897,7 +897,7 @@ export const matches = [
   {
     "id": 12,
     "date": "2026-06-14",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "F",
     "stadium": "Estadio Monterrey",
     "home": "SWE",
@@ -911,7 +911,7 @@ export const matches = [
   {
     "id": 13,
     "date": "2026-06-15",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "H",
     "stadium": "Miami Stadium",
     "home": "KSA",
@@ -925,7 +925,7 @@ export const matches = [
   {
     "id": 14,
     "date": "2026-06-15",
-    "time": "TBD",
+    "time": "11:00 AM",
     "group": "H",
     "stadium": "Atlanta Stadium",
     "home": "ESP",
@@ -939,7 +939,7 @@ export const matches = [
   {
     "id": 15,
     "date": "2026-06-15",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "G",
     "stadium": "Los Angeles Stadium",
     "home": "IRN",
@@ -953,7 +953,7 @@ export const matches = [
   {
     "id": 16,
     "date": "2026-06-15",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "G",
     "stadium": "Seattle Stadium",
     "home": "BEL",
@@ -967,7 +967,7 @@ export const matches = [
   {
     "id": 17,
     "date": "2026-06-16",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "I",
     "stadium": "New York New Jersey Stadium",
     "home": "FRA",
@@ -981,7 +981,7 @@ export const matches = [
   {
     "id": 18,
     "date": "2026-06-16",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "I",
     "stadium": "Boston Stadium",
     "home": "IRQ",
@@ -995,7 +995,7 @@ export const matches = [
   {
     "id": 19,
     "date": "2026-06-16",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "J",
     "stadium": "Kansas City Stadium",
     "home": "ARG",
@@ -1009,7 +1009,7 @@ export const matches = [
   {
     "id": 20,
     "date": "2026-06-16",
-    "time": "TBD",
+    "time": "11:00 PM",
     "group": "J",
     "stadium": "San Francisco Bay Area Stadium",
     "home": "AUT",
@@ -1023,7 +1023,7 @@ export const matches = [
   {
     "id": 21,
     "date": "2026-06-17",
-    "time": "TBD",
+    "time": "6:00 PM",
     "group": "L",
     "stadium": "Toronto Stadium",
     "home": "GHA",
@@ -1037,7 +1037,7 @@ export const matches = [
   {
     "id": 22,
     "date": "2026-06-17",
-    "time": "TBD",
+    "time": "3:00 PM",
     "group": "L",
     "stadium": "Dallas Stadium",
     "home": "ENG",
@@ -1051,13 +1051,13 @@ export const matches = [
   {
     "id": 23,
     "date": "2026-06-17",
-    "time": "TBD",
+    "time": "12:00 PM",
     "group": "K",
     "stadium": "Houston Stadium",
     "home": "POR",
     "away": "COD",
     "homeName": "Portugal",
-    "awayName": "Democratic Republic of the Congo",
+    "awayName": "DR Congo",
     "status": "scheduled",
     "homeScore": null,
     "awayScore": null
@@ -1065,7 +1065,7 @@ export const matches = [
   {
     "id": 24,
     "date": "2026-06-17",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "K",
     "stadium": "Mexico City Stadium",
     "home": "UZB",
@@ -1079,7 +1079,7 @@ export const matches = [
   {
     "id": 25,
     "date": "2026-06-18",
-    "time": "TBD",
+    "time": "11:00 AM",
     "group": "A",
     "stadium": "Atlanta Stadium",
     "home": "CZE",
@@ -1093,7 +1093,7 @@ export const matches = [
   {
     "id": 26,
     "date": "2026-06-18",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "B",
     "stadium": "Los Angeles Stadium",
     "home": "SUI",
@@ -1107,7 +1107,7 @@ export const matches = [
   {
     "id": 27,
     "date": "2026-06-18",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "B",
     "stadium": "BC Place Vancouver",
     "home": "CAN",
@@ -1121,7 +1121,7 @@ export const matches = [
   {
     "id": 28,
     "date": "2026-06-18",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "A",
     "stadium": "Estadio Guadalajara",
     "home": "MEX",
@@ -1135,7 +1135,7 @@ export const matches = [
   {
     "id": 29,
     "date": "2026-06-19",
-    "time": "TBD",
+    "time": "7:30 PM",
     "group": "C",
     "stadium": "Philadelphia Stadium",
     "home": "BRA",
@@ -1149,7 +1149,7 @@ export const matches = [
   {
     "id": 30,
     "date": "2026-06-19",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "C",
     "stadium": "Boston Stadium",
     "home": "SCO",
@@ -1163,7 +1163,7 @@ export const matches = [
   {
     "id": 31,
     "date": "2026-06-19",
-    "time": "TBD",
+    "time": "10:00 PM",
     "group": "D",
     "stadium": "San Francisco Bay Area Stadium",
     "home": "TUR",
@@ -1177,12 +1177,12 @@ export const matches = [
   {
     "id": 32,
     "date": "2026-06-19",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "D",
     "stadium": "Seattle Stadium",
     "home": "USA",
     "away": "AUS",
-    "homeName": "United States of America",
+    "homeName": "United States",
     "awayName": "Australia",
     "status": "scheduled",
     "homeScore": null,
@@ -1191,7 +1191,7 @@ export const matches = [
   {
     "id": 33,
     "date": "2026-06-20",
-    "time": "TBD",
+    "time": "3:00 PM",
     "group": "E",
     "stadium": "Toronto Stadium",
     "home": "GER",
@@ -1205,7 +1205,7 @@ export const matches = [
   {
     "id": 34,
     "date": "2026-06-20",
-    "time": "TBD",
+    "time": "7:00 PM",
     "group": "E",
     "stadium": "Kansas City Stadium",
     "home": "ECU",
@@ -1219,7 +1219,7 @@ export const matches = [
   {
     "id": 35,
     "date": "2026-06-20",
-    "time": "TBD",
+    "time": "12:00 PM",
     "group": "F",
     "stadium": "Houston Stadium",
     "home": "NED",
@@ -1233,7 +1233,7 @@ export const matches = [
   {
     "id": 36,
     "date": "2026-06-20",
-    "time": "TBD",
+    "time": "11:00 PM",
     "group": "F",
     "stadium": "Estadio Monterrey",
     "home": "TUN",
@@ -1247,7 +1247,7 @@ export const matches = [
   {
     "id": 37,
     "date": "2026-06-21",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "H",
     "stadium": "Miami Stadium",
     "home": "URU",
@@ -1261,7 +1261,7 @@ export const matches = [
   {
     "id": 38,
     "date": "2026-06-21",
-    "time": "TBD",
+    "time": "11:00 AM",
     "group": "H",
     "stadium": "Atlanta Stadium",
     "home": "ESP",
@@ -1275,7 +1275,7 @@ export const matches = [
   {
     "id": 39,
     "date": "2026-06-21",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "G",
     "stadium": "Los Angeles Stadium",
     "home": "BEL",
@@ -1289,7 +1289,7 @@ export const matches = [
   {
     "id": 40,
     "date": "2026-06-21",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "G",
     "stadium": "BC Place Vancouver",
     "home": "NZL",
@@ -1303,7 +1303,7 @@ export const matches = [
   {
     "id": 41,
     "date": "2026-06-22",
-    "time": "TBD",
+    "time": "7:00 PM",
     "group": "I",
     "stadium": "New York New Jersey Stadium",
     "home": "NOR",
@@ -1317,7 +1317,7 @@ export const matches = [
   {
     "id": 42,
     "date": "2026-06-22",
-    "time": "TBD",
+    "time": "4:00 PM",
     "group": "I",
     "stadium": "Philadelphia Stadium",
     "home": "FRA",
@@ -1331,7 +1331,7 @@ export const matches = [
   {
     "id": 43,
     "date": "2026-06-22",
-    "time": "TBD",
+    "time": "12:00 PM",
     "group": "J",
     "stadium": "Dallas Stadium",
     "home": "ARG",
@@ -1345,7 +1345,7 @@ export const matches = [
   {
     "id": 44,
     "date": "2026-06-22",
-    "time": "TBD",
+    "time": "10:00 PM",
     "group": "J",
     "stadium": "San Francisco Bay Area Stadium",
     "home": "JOR",
@@ -1359,7 +1359,7 @@ export const matches = [
   {
     "id": 45,
     "date": "2026-06-23",
-    "time": "TBD",
+    "time": "3:00 PM",
     "group": "L",
     "stadium": "Boston Stadium",
     "home": "ENG",
@@ -1373,7 +1373,7 @@ export const matches = [
   {
     "id": 46,
     "date": "2026-06-23",
-    "time": "TBD",
+    "time": "6:00 PM",
     "group": "L",
     "stadium": "Toronto Stadium",
     "home": "PAN",
@@ -1387,7 +1387,7 @@ export const matches = [
   {
     "id": 47,
     "date": "2026-06-23",
-    "time": "TBD",
+    "time": "12:00 PM",
     "group": "K",
     "stadium": "Houston Stadium",
     "home": "POR",
@@ -1401,13 +1401,13 @@ export const matches = [
   {
     "id": 48,
     "date": "2026-06-23",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "K",
     "stadium": "Estadio Guadalajara",
     "home": "COL",
     "away": "COD",
     "homeName": "Columbia",
-    "awayName": "Democratic Republic of the Congo",
+    "awayName": "DR Congo",
     "status": "scheduled",
     "homeScore": null,
     "awayScore": null
@@ -1415,7 +1415,7 @@ export const matches = [
   {
     "id": 49,
     "date": "2026-06-24",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "C",
     "stadium": "Miami Stadium",
     "home": "SCO",
@@ -1429,7 +1429,7 @@ export const matches = [
   {
     "id": 50,
     "date": "2026-06-24",
-    "time": "TBD",
+    "time": "5:00 PM",
     "group": "C",
     "stadium": "Atlanta Stadium",
     "home": "MAR",
@@ -1443,7 +1443,7 @@ export const matches = [
   {
     "id": 51,
     "date": "2026-06-24",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "B",
     "stadium": "BC Place Vancouver",
     "home": "SUI",
@@ -1457,7 +1457,7 @@ export const matches = [
   {
     "id": 52,
     "date": "2026-06-24",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "B",
     "stadium": "Seattle Stadium",
     "home": "BIH",
@@ -1471,7 +1471,7 @@ export const matches = [
   {
     "id": 53,
     "date": "2026-06-24",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "A",
     "stadium": "Mexico City Stadium",
     "home": "CZE",
@@ -1485,7 +1485,7 @@ export const matches = [
   {
     "id": 54,
     "date": "2026-06-24",
-    "time": "TBD",
+    "time": "8:00 PM",
     "group": "A",
     "stadium": "Estadio Monterrey",
     "home": "RSA",
@@ -1499,7 +1499,7 @@ export const matches = [
   {
     "id": 55,
     "date": "2026-06-25",
-    "time": "TBD",
+    "time": "3:00 PM",
     "group": "E",
     "stadium": "Philadelphia Stadium",
     "home": "CUW",
@@ -1513,7 +1513,7 @@ export const matches = [
   {
     "id": 56,
     "date": "2026-06-25",
-    "time": "TBD",
+    "time": "3:00 PM",
     "group": "E",
     "stadium": "New York New Jersey Stadium",
     "home": "ECU",
@@ -1527,7 +1527,7 @@ export const matches = [
   {
     "id": 57,
     "date": "2026-06-25",
-    "time": "TBD",
+    "time": "6:00 PM",
     "group": "F",
     "stadium": "Dallas Stadium",
     "home": "JPN",
@@ -1541,7 +1541,7 @@ export const matches = [
   {
     "id": 58,
     "date": "2026-06-25",
-    "time": "TBD",
+    "time": "6:00 PM",
     "group": "F",
     "stadium": "Kansas City Stadium",
     "home": "TUN",
@@ -1555,13 +1555,13 @@ export const matches = [
   {
     "id": 59,
     "date": "2026-06-25",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "D",
     "stadium": "Los Angeles Stadium",
     "home": "TUR",
     "away": "USA",
     "homeName": "Turkiye",
-    "awayName": "United States of America",
+    "awayName": "United States",
     "status": "scheduled",
     "homeScore": null,
     "awayScore": null
@@ -1569,7 +1569,7 @@ export const matches = [
   {
     "id": 60,
     "date": "2026-06-25",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "D",
     "stadium": "San Francisco Bay Area Stadium",
     "home": "PAR",
@@ -1583,7 +1583,7 @@ export const matches = [
   {
     "id": 61,
     "date": "2026-06-26",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "I",
     "stadium": "Boston Stadium",
     "home": "NOR",
@@ -1597,7 +1597,7 @@ export const matches = [
   {
     "id": 62,
     "date": "2026-06-26",
-    "time": "TBD",
+    "time": "2:00 PM",
     "group": "I",
     "stadium": "Toronto Stadium",
     "home": "SEN",
@@ -1611,7 +1611,7 @@ export const matches = [
   {
     "id": 63,
     "date": "2026-06-26",
-    "time": "TBD",
+    "time": "10:00 PM",
     "group": "G",
     "stadium": "Seattle Stadium",
     "home": "EGY",
@@ -1625,7 +1625,7 @@ export const matches = [
   {
     "id": 64,
     "date": "2026-06-26",
-    "time": "TBD",
+    "time": "10:00 PM",
     "group": "G",
     "stadium": "BC Place Vancouver",
     "home": "NZL",
@@ -1639,7 +1639,7 @@ export const matches = [
   {
     "id": 65,
     "date": "2026-06-26",
-    "time": "TBD",
+    "time": "7:00 PM",
     "group": "H",
     "stadium": "Houston Stadium",
     "home": "CPV",
@@ -1653,7 +1653,7 @@ export const matches = [
   {
     "id": 66,
     "date": "2026-06-26",
-    "time": "TBD",
+    "time": "7:00 PM",
     "group": "H",
     "stadium": "Estadio Guadalajara",
     "home": "URU",
@@ -1667,7 +1667,7 @@ export const matches = [
   {
     "id": 67,
     "date": "2026-06-27",
-    "time": "TBD",
+    "time": "4:00 PM",
     "group": "L",
     "stadium": "New York New Jersey Stadium",
     "home": "PAN",
@@ -1681,7 +1681,7 @@ export const matches = [
   {
     "id": 68,
     "date": "2026-06-27",
-    "time": "TBD",
+    "time": "4:00 PM",
     "group": "L",
     "stadium": "Philadelphia Stadium",
     "home": "CRO",
@@ -1695,7 +1695,7 @@ export const matches = [
   {
     "id": 69,
     "date": "2026-06-27",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "J",
     "stadium": "Kansas City Stadium",
     "home": "ALG",
@@ -1709,7 +1709,7 @@ export const matches = [
   {
     "id": 70,
     "date": "2026-06-27",
-    "time": "TBD",
+    "time": "9:00 PM",
     "group": "J",
     "stadium": "Dallas Stadium",
     "home": "JOR",
@@ -1723,7 +1723,7 @@ export const matches = [
   {
     "id": 71,
     "date": "2026-06-27",
-    "time": "TBD",
+    "time": "6:30 PM",
     "group": "K",
     "stadium": "Miami Stadium",
     "home": "COL",
@@ -1737,12 +1737,12 @@ export const matches = [
   {
     "id": 72,
     "date": "2026-06-27",
-    "time": "TBD",
+    "time": "6:30 PM",
     "group": "K",
     "stadium": "Atlanta Stadium",
     "home": "COD",
     "away": "UZB",
-    "homeName": "Democratic Republic of the Congo",
+    "homeName": "DR Congo",
     "awayName": "Uzbekistan",
     "status": "scheduled",
     "homeScore": null,

@@ -24,6 +24,35 @@ function formatDate(value) {
   return value;
 }
 
+function formatTime(value) {
+  if (!value) return "TBD";
+
+  if (value instanceof Date) {
+    let hours = value.getHours();
+    const minutes = value.getMinutes();
+
+    const period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+
+    return `${hours}:${String(minutes).padStart(2, "0")} ${period}`;
+  }
+
+  if (typeof value === "number") {
+    const totalMinutes = Math.round(value * 24 * 60);
+    let hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    const period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+
+    return `${hours}:${String(minutes).padStart(2, "0")} ${period}`;
+  }
+
+  return String(value);
+}
+
 const groups = teamRows.map((row) => {
   const groupLetter = row.Groups.replace("Group ", "");
 
@@ -56,7 +85,7 @@ const matches = scheduleRows.map((row, index) => {
   return {
     id: index + 1,
     date: formatDate(row.Date),
-    time: row.Time,
+    time: formatTime(row.Time),
     group: row.Group,
     stadium: row.Stadium,
     home,
