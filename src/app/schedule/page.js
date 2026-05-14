@@ -255,12 +255,8 @@ export default function Schedule() {
   function renderMatchCard(match) {
     return (
       <div key={match.id} className="border border-gray-700 p-3">
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-2">
           <p className="text-[11px] text-gray-400">{match.date}</p>
-
-          <span className="border border-gray-600 px-2 py-0.5 text-[10px] text-gray-300">
-            {groupLabel(match.group)}
-          </span>
         </div>
 
         <div className="flex items-center justify-between gap-2">
@@ -369,6 +365,12 @@ export default function Schedule() {
             </div>
           </div>
         )}
+
+        <div className="mt-3 flex justify-end">
+          <span className="border border-gray-600 px-2 py-0.5 text-[10px] text-gray-300">
+            {groupLabel(match.group)}
+          </span>
+        </div>
       </div>
     );
   }
