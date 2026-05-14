@@ -176,11 +176,44 @@ export default function Schedule() {
     localStorage.setItem("goalcast_my_votes", JSON.stringify(myVotes));
   }, [myVotes]);
 
+  function timeToMinutes(time) {
+    if (!time || time === "TBD") return 9999;
+
+    const [timePart, period] = time.split(" ");
+    const [hourText, minuteText] = timePart.split(":");
+
+    let hours = Number(hourText);
+    const minutes = Number(minuteText);
+
+    if (period === "PM" && hours !== 12) {
+      hours += 12;
+    }
+
+    if (period === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return hours * 60 + minutes;
+  }
+
+  function dateAndTimeValue(match) {
+    const dateValue = new Date(match.date).getTime();
+    const timeValue = timeToMinutes(match.time);
+
+    return dateValue + timeValue * 60 * 1000;
+  }
+
   const groupedMatches = matches.reduce((acc, match) => {
-    if (!acc[match.group]) acc[match.group] = [];
-    acc[match.group].push(match);
-    return acc;
+  if (!acc[match.group]) acc[match.group] = [];
+  acc[match.group].push(match);
+  return acc;
   }, {});
+
+  Object.keys(groupedMatches).forEach((group) => {
+    groupedMatches[group].sort((a, b) => {
+      return dateAndTimeValue(a) - dateAndTimeValue(b);
+    });
+  });
 
   const groupKeys = Object.keys(groupedMatches).sort();
 
