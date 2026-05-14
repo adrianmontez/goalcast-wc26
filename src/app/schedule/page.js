@@ -285,12 +285,18 @@ export default function Schedule() {
           </div>
         </div>
 
-        <button
-          onClick={() => toggleMatch(match.id)}
-          className="mt-2 text-xs text-gray-300 underline"
-        >
-          {openMatches[match.id] ? "Hide details" : "Show details"}
-        </button>
+        <div className="mt-2 flex items-center justify-between">
+          <button
+            onClick={() => toggleMatch(match.id)}
+            className="text-xs text-gray-300 underline"
+          >
+            {openMatches[match.id] ? "Hide details" : "Show details"}
+          </button>
+
+          <span className="border border-gray-600 px-2 py-0.5 text-[10px] text-gray-300">
+            {groupLabel(match.group)}
+          </span>
+        </div>
 
         {openMatches[match.id] && (
           <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
@@ -365,12 +371,6 @@ export default function Schedule() {
             </div>
           </div>
         )}
-
-        <div className="mt-3 flex justify-end">
-          <span className="border border-gray-600 px-2 py-0.5 text-[10px] text-gray-300">
-            {groupLabel(match.group)}
-          </span>
-        </div>
       </div>
     );
   }
