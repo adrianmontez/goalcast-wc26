@@ -7,6 +7,7 @@ import { matches } from "@/data/wc2026Data";
 
 export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
+  const [openMatchesLoaded, setOpenMatchesLoaded] = useState(false);
   
   const [votes, setVotes] = useState({});
 
@@ -123,29 +124,39 @@ export default function Schedule() {
   }
 
   useEffect(() => {
-    localStorage.setItem(
-      "goalcast_open_schedule_matches",
-      JSON.stringify(openMatches)
-    );
-  }, [openMatches]);
-
-  useEffect(() => {
-    let ignore = false;
+    let cancelled = false;
 
     Promise.resolve().then(() => {
       const savedOpenMatches = localStorage.getItem(
         "goalcast_open_schedule_matches"
       );
 
-      if (!ignore && savedOpenMatches) {
-        setOpenMatches(JSON.parse(savedOpenMatches));
+      if (cancelled) return;
+
+      if (savedOpenMatches) {
+        try {
+          setOpenMatches(JSON.parse(savedOpenMatches));
+        } catch {
+          setOpenMatches({});
+        }
       }
+
+      setOpenMatchesLoaded(true);
     });
 
     return () => {
-      ignore = true;
+      cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!openMatchesLoaded) return;
+
+    localStorage.setItem(
+      "goalcast_open_schedule_matches",
+      JSON.stringify(openMatches)
+    );
+  }, [openMatches, openMatchesLoaded]);
 
   useEffect(() => {
     let ignore = false;
