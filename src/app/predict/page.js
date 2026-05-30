@@ -691,18 +691,20 @@ export default function Predict() {
                     ))}
 
                     {predictedChampion && (
-                      <div className="absolute bottom-0 right-0 w-[38%]">
-                        <div className="w-full overflow-hidden border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-6 py-5">
-                          <div className="flex items-center justify-center gap-6">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src="/images/goalcast_trophy.png"
-                              alt="Trophy"
-                              className="h-[130px] w-auto max-w-[140px] object-contain shrink-0"
-                            />
+                      <div className="absolute bottom-0 right-0 w-[42%]">
+                        <div className="flex items-stretch justify-end gap-5">
+                          {/* Trophy outside the yellow box */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src="/images/goalcast_trophy.png"
+                            alt="Trophy"
+                            className="h-[230px] w-auto object-contain shrink-0"
+                          />
 
-                            <div className="flex min-w-0 flex-col items-center text-center">
-                              <p className="mb-3 text-2xl font-bold uppercase leading-tight tracking-wide text-gray-200">
+                          {/* Yellow champion box */}
+                          <div className="h-[230px] flex-1 overflow-hidden border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-5 py-5">
+                            <div className="flex h-full flex-col items-center justify-center text-center">
+                              <p className="mb-3 text-xl font-bold uppercase leading-tight tracking-wide text-gray-200">
                                 2026 World Cup Champion
                               </p>
 
@@ -714,7 +716,7 @@ export default function Predict() {
                               <img
                                 src={`/flags/${predictedChampion}.png`}
                                 alt={`${predictedChampion} flag`}
-                                className="mt-4 h-[105px] w-[158px] object-cover border border-gray-500"
+                                className="mt-4 h-[95px] w-[143px] object-cover border border-gray-500"
                               />
                             </div>
                           </div>
