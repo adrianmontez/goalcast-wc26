@@ -9,7 +9,7 @@ export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
   const [openMatchesLoaded, setOpenMatchesLoaded] = useState(false);
 
-  const [scheduleView, setScheduleView] = useState("group");
+  const [scheduleView, setScheduleView] = useState("datetime");
   
   const [votes, setVotes] = useState({});
 
