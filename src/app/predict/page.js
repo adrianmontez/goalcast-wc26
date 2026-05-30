@@ -625,10 +625,6 @@ export default function Predict() {
 
                                 return (
                                   <div key={match.matchNumber} className="space-y-2">
-                                    <div className="text-center text-xs text-gray-400">
-                                      Match {match.matchNumber}
-                                    </div>
-
                                     <div
                                       onClick={() =>
                                         selectWinner(match.matchNumber, team1, team1, team2)
