@@ -601,25 +601,38 @@ export default function Predict() {
                     Made on GoalCast
                   </p>
 
-                  <div className="grid grid-cols-5 gap-6">
-                    {rounds.map((round) => (
-                      <div key={round.name} className="space-y-4">
-                        <h3 className="text-lg font-semibold text-center">{round.name}</h3>
-                        <div className={round.name === 'Round of 32' ? 'grid grid-cols-2 gap-2' : 'space-y-2'}>
-                          {round.matches.map((match) => {
-                            const team1 = match.teamA;
-                            const team2 = match.teamB;
-                            const winner = bracketWinners[match.matchNumber] || null;
-                            const isWinner1 = winner === team1;
-                            const isWinner2 = winner === team2;
-                            const matchupReady = Boolean(team1 && team2);
+                  <div className="flex items-end gap-10">
+                    <div className="flex-1">
+                      <div className="grid grid-cols-5 gap-6">
+                        {rounds.map((round) => (
+                          <div key={round.name}>
+                            <h4 className="mb-3 text-center text-lg font-bold">{round.name}</h4>
 
-                            return (
-                              <div key={match.matchNumber} className="border border-gray-600 p-3 rounded bg-gray-900">
-                                <div className="space-y-2">
-                                  {team1 && (
+                            <div
+                              className={
+                                round.name === "Round of 32"
+                                  ? "grid grid-cols-2 gap-2"
+                                  : "space-y-2"
+                              }
+                            >
+                              {round.matches.map((match) => {
+                                const team1 = match.teamA;
+                                const team2 = match.teamB;
+                                const winner = bracketWinners[match.matchNumber] || null;
+                                const isWinner1 = winner === team1;
+                                const isWinner2 = winner === team2;
+                                const matchupReady = Boolean(team1 && team2);
+
+                                return (
+                                  <div key={match.matchNumber} className="space-y-2">
+                                    <div className="text-center text-xs text-gray-400">
+                                      Match {match.matchNumber}
+                                    </div>
+
                                     <div
-                                      onClick={() => selectWinner(match.matchNumber, team1, team1, team2)}
+                                      onClick={() =>
+                                        selectWinner(match.matchNumber, team1, team1, team2)
+                                      }
                                       className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
                                         isWinner1
                                           ? "bg-yellow-600 border-yellow-400"
@@ -628,24 +641,25 @@ export default function Predict() {
                                             : "opacity-50 cursor-not-allowed"
                                       }`}
                                     >
-                                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img
-                                        src={`/flags/${team1}.png`}
-                                        alt={`${team1} flag`}
-                                        className="h-[15px] w-[20px] object-cover"
-                                      />
-                                      <span className="text-sm font-semibold">{team1}</span>
+                                      {team1 ? (
+                                        <>
+                                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                                          <img
+                                            src={`/flags/${team1}.png`}
+                                            alt={`${team1} flag`}
+                                            className="h-[15px] w-[20px] object-cover"
+                                          />
+                                          <span>{team1}</span>
+                                        </>
+                                      ) : (
+                                        <span>TBD</span>
+                                      )}
                                     </div>
-                                  )}
-                                  {!team1 && (
-                                    <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
-                                      <span className="text-sm text-gray-400">TBD</span>
-                                    </div>
-                                  )}
-                                  <div className="text-center text-xs text-gray-400">vs</div>
-                                  {team2 && (
+
                                     <div
-                                      onClick={() => selectWinner(match.matchNumber, team2, team1, team2)}
+                                      onClick={() =>
+                                        selectWinner(match.matchNumber, team2, team1, team2)
+                                      }
                                       className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
                                         isWinner2
                                           ? "bg-yellow-600 border-yellow-400"
@@ -654,58 +668,59 @@ export default function Predict() {
                                             : "opacity-50 cursor-not-allowed"
                                       }`}
                                     >
-                                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img
-                                        src={`/flags/${team2}.png`}
-                                        alt={`${team2} flag`}
-                                        className="h-[15px] w-[20px] object-cover"
-                                      />
-                                      <span className="text-sm font-semibold">{team2}</span>
+                                      {team2 ? (
+                                        <>
+                                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                                          <img
+                                            src={`/flags/${team2}.png`}
+                                            alt={`${team2} flag`}
+                                            className="h-[15px] w-[20px] object-cover"
+                                          />
+                                          <span>{team2}</span>
+                                        </>
+                                      ) : (
+                                        <span>TBD</span>
+                                      )}
                                     </div>
-                                  )}
-                                  {!team2 && (
-                                    <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
-                                      <span className="text-sm text-gray-400">TBD</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {predictedChampion && (
-                    <div className="mt-10 flex justify-end">
-                      <div className="flex items-center gap-6 border border-yellow-400 bg-yellow-500/10 px-6 py-4">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src="/images/goalcast_trophy.png"
-                          alt="Trophy"
-                          className="h-[110px] w-auto object-contain"
-                        />
-
-                        <div className="flex flex-col items-center">
-                          <p className="text-sm uppercase tracking-wide text-gray-300 mb-2">
-                            Winner
-                          </p>
-
-                          <p className="text-5xl font-extrabold text-yellow-400 leading-none">
-                            {predictedChampion}
-                          </p>
-
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={`/flags/${predictedChampion}.png`}
-                            alt={`${predictedChampion} flag`}
-                            className="mt-3 h-[90px] w-[135px] object-cover border border-gray-600"
-                          />
-                        </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  )}
+
+                    {predictedChampion && (
+                      <div className="w-[420px] shrink-0 self-end">
+                        <div className="flex items-center justify-center gap-8 border-2 border-yellow-400 bg-yellow-500/10 px-8 py-8 rounded-xl min-h-[320px]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src="/images/goalcast_trophy.png"
+                            alt="Trophy"
+                            className="h-[180px] w-auto object-contain"
+                          />
+
+                          <div className="flex flex-col items-center text-center">
+                            <p className="text-xl font-bold uppercase tracking-wide text-gray-200 mb-4">
+                              2026 World Cup Champion
+                            </p>
+
+                            <p className="text-7xl font-extrabold text-yellow-400 leading-none">
+                              {predictedChampion}
+                            </p>
+
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/flags/${predictedChampion}.png`}
+                              alt={`${predictedChampion} flag`}
+                              className="mt-5 h-[130px] w-[195px] object-cover border border-gray-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>    
             );
