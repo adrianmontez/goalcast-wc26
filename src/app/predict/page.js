@@ -187,6 +187,16 @@ export default function Predict() {
       });
   }
 
+  function getPredictedChampion() {
+    const bracketMatches = buildBracketMatches();
+
+    const finalMatch = bracketMatches.find(
+      (match) => match.roundType === "Final"
+    );
+
+    return finalMatch?.winner || null;
+  }
+
   async function generateBracketImage() {
     if (!bracketImageRef.current) return;
     if (!isBracketComplete()) return;
@@ -195,7 +205,7 @@ export default function Predict() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
-      
+
       const dataUrl = await toPng(bracketImageRef.current, {
         cacheBust: true,
         pixelRatio: 2,
@@ -535,6 +545,7 @@ export default function Predict() {
 
           {(() => {
             const bracketMatches = buildBracketMatches();
+            const predictedChampion = getPredictedChampion();
             const roundOrder = [
               'Round of 32',
               'Round of 16',
@@ -665,6 +676,36 @@ export default function Predict() {
                       </div>
                     ))}
                   </div>
+                  
+                  {predictedChampion && (
+                    <div className="mt-10 flex justify-end">
+                      <div className="flex items-center gap-6 border border-yellow-400 bg-yellow-500/10 px-6 py-4">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/images/goalcast_trophy.png"
+                          alt="Trophy"
+                          className="h-[110px] w-auto object-contain"
+                        />
+
+                        <div className="flex flex-col items-center">
+                          <p className="text-sm uppercase tracking-wide text-gray-300 mb-2">
+                            Winner
+                          </p>
+
+                          <p className="text-5xl font-extrabold text-yellow-400 leading-none">
+                            {predictedChampion}
+                          </p>
+
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/flags/${predictedChampion}.png`}
+                            alt={`${predictedChampion} flag`}
+                            className="mt-3 h-[90px] w-[135px] object-cover border border-gray-600"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>    
             );
