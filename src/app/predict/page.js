@@ -207,45 +207,20 @@ export default function Predict() {
         }
 
         return new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve;
+          const timeout = setTimeout(resolve, 1500);
+
+          img.onload = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
+
+          img.onerror = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
         });
       })
     );
-  }
-
-  function preloadImage(src) {
-    return new Promise((resolve) => {
-      if (typeof window === "undefined") {
-        resolve();
-        return;
-      }
-
-      const img = document.createElement("img");
-
-      const finish = () => resolve();
-
-      img.onload = finish;
-      img.onerror = finish;
-
-      img.src = src;
-
-      if (img.complete) {
-        finish();
-      }
-    });
-  }
-
-  async function preloadExportImages() {
-    const predictedChampion = getPredictedChampion();
-
-    const imagesToPreload = [
-      "/images/goalcast_trophy.png",
-      "/images/goalcast_soccerball.png",
-      predictedChampion ? `/flags/${predictedChampion}.png` : null,
-    ].filter(Boolean);
-
-    await Promise.all(imagesToPreload.map((src) => preloadImage(src)));
   }
 
   async function generateBracketImage() {
@@ -255,18 +230,16 @@ export default function Predict() {
     setIsGeneratingImage(true);
 
     try {
-      await preloadExportImages();
-
       await waitForImagesToLoad(bracketImageRef.current);
 
       if (document.fonts) {
         await document.fonts.ready;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const dataUrl = await toPng(bracketImageRef.current, {
-        pixelRatio: 1.5,
+        pixelRatio: 1,
         backgroundColor: "#000000",
       });
 
@@ -406,7 +379,7 @@ export default function Predict() {
           src="/images/goalcast_trophy.png"
           alt=""
           loading="eager"
-          decoding="sync"
+          decoding="async"
         />
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -414,7 +387,7 @@ export default function Predict() {
           src="/images/goalcast_soccerball.png"
           alt=""
           loading="eager"
-          decoding="sync"
+          decoding="async"
         />
       </div>
 
@@ -670,7 +643,7 @@ export default function Predict() {
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
                       loading="eager"
-                      decoding="sync"
+                      decoding="async"
                       className="h-[42px] w-[42px] object-contain"
                     />
 
@@ -683,7 +656,7 @@ export default function Predict() {
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
                       loading="eager"
-                      decoding="sync"
+                      decoding="async"
                       className="h-[42px] w-[42px] object-contain"
                     />
                   </div> 
@@ -789,7 +762,7 @@ export default function Predict() {
                             src="/images/goalcast_trophy.png"
                             alt="Trophy"
                             loading="eager"
-                            decoding="sync"
+                            decoding="async"
                             className="h-[165px] w-auto object-contain shrink-0"
                           />
 
