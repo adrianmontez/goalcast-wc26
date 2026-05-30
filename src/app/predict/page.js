@@ -591,7 +591,7 @@ export default function Predict() {
               <div className="overflow-x-auto">
                 <div
                     ref={bracketImageRef}
-                    className="w-[1250px] bg-black text-white border border-gray-700 p-4 overflow-hidden"
+                    className="w-[1450px] bg-black text-white border border-gray-700 p-4 overflow-hidden"
                   >
                   <div className="mb-3 flex items-center justify-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
