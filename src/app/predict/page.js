@@ -590,15 +590,15 @@ export default function Predict() {
             return (
               <div className="overflow-x-auto">
                 <div
-                  ref={bracketImageRef}
-                  className="w-[1800px] bg-black text-white border border-gray-700 p-6 overflow-hidden"
-                >
-                  <div className="mb-2 flex items-center justify-center gap-4">
+                    ref={bracketImageRef}
+                    className="w-[1150px] bg-black text-white border border-gray-700 p-4 overflow-hidden"
+                  >
+                  <div className="mb-3 flex items-center justify-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
-                      className="h-[56px] w-[56px] object-contain"
+                      className="h-[42px] w-[42px] object-contain"
                     />
 
                     <h3 className="text-3xl font-extrabold text-center">
@@ -609,7 +609,7 @@ export default function Predict() {
                     <img
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
-                      className="h-[56px] w-[56px] object-contain"
+                      className="h-[42px] w-[42px] object-contain"
                     />
                   </div> 
 
@@ -617,7 +617,7 @@ export default function Predict() {
                     Made on GoalCast
                   </p>
 
-                  <div className="relative grid grid-cols-5 gap-10">
+                  <div className="relative grid grid-cols-5 gap-5">
                     {rounds.map((round) => (
                       <div key={round.name} className="flex h-full flex-col">
                         <h4 className="mb-3 text-center text-lg font-bold">{round.name}</h4>
@@ -707,24 +707,22 @@ export default function Predict() {
                     ))}
 
                     {predictedChampion && (
-                      <div className="absolute bottom-0 right-0 w-[42%]">
-                        <div className="flex items-stretch justify-end gap-5">
-                          {/* Trophy outside the yellow box */}
+                      <div className="absolute bottom-0 right-0 w-[40%]">
+                        <div className="flex items-stretch justify-end gap-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src="/images/goalcast_trophy.png"
                             alt="Trophy"
-                            className="h-[230px] w-auto object-contain shrink-0"
+                            className="h-[165px] w-auto object-contain shrink-0"
                           />
 
-                          {/* Yellow champion box */}
-                          <div className="h-[230px] flex-1 overflow-hidden border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-5 py-5">
+                          <div className="h-[165px] flex-1 overflow-hidden border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-3 py-3">
                             <div className="flex h-full flex-col items-center justify-center text-center">
-                              <p className="mb-3 text-xl font-bold uppercase leading-tight tracking-wide text-gray-200">
+                              <p className="mb-2 text-base font-bold uppercase leading-tight tracking-wide text-gray-200">
                                 2026 World Cup Champion
                               </p>
 
-                              <p className="text-7xl font-extrabold leading-none text-yellow-400">
+                              <p className="text-5xl font-extrabold leading-none text-yellow-400">
                                 {predictedChampion}
                               </p>
 
@@ -732,7 +730,7 @@ export default function Predict() {
                               <img
                                 src={`/flags/${predictedChampion}.png`}
                                 alt={`${predictedChampion} flag`}
-                                className="mt-4 h-[95px] w-[143px] object-cover border border-gray-500"
+                                className="mt-3 h-[65px] w-[98px] object-cover border border-gray-500"
                               />
                             </div>
                           </div>
@@ -775,7 +773,7 @@ export default function Predict() {
             <img
               src={generatedBracketImage}
               alt="Generated bracket preview"
-              className="w-full h-auto border border-gray-700"
+              className="max-h-[70vh] w-full object-contain border border-gray-700"
             />
 
             <div className="mt-4 flex justify-center gap-3">
