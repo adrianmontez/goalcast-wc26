@@ -593,9 +593,25 @@ export default function Predict() {
                   ref={bracketImageRef}
                   className="w-[1800px] bg-black text-white border border-gray-700 p-6 overflow-hidden"
                 >
-                  <h3 className="text-xl font-bold text-center mb-2">
-                    2026 World Cup Predictions  
-                  </h3> 
+                  <div className="mb-2 flex items-center justify-center gap-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/goalcast_soccerball.png"
+                      alt="Soccer ball"
+                      className="h-[42px] w-[42px] object-contain"
+                    />
+
+                    <h3 className="text-3xl font-extrabold text-center">
+                      2026 World Cup Predictions
+                    </h3>
+
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/goalcast_soccerball.png"
+                      alt="Soccer ball"
+                      className="h-[42px] w-[42px] object-contain"
+                    />
+                  </div> 
 
                   <p className="text-xs text-gray-400 text-center mb-4">
                     Made on GoalCast
@@ -755,13 +771,14 @@ export default function Predict() {
               Your Bracket Image
             </h3>
 
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={generatedBracketImage}
               alt="Generated bracket preview"
               className="w-full h-auto border border-gray-700"
             />
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex justify-center gap-3">
               <button
                 onClick={downloadBracketImage}
                 className="bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
