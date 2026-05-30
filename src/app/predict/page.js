@@ -601,128 +601,126 @@ export default function Predict() {
                     Made on GoalCast
                   </p>
 
-                  <div className="flex items-end gap-10">
-                    <div className="flex-1">
-                      <div className="grid grid-cols-5 gap-6">
-                        {rounds.map((round) => (
-                          <div key={round.name}>
-                            <h4 className="mb-3 text-center text-lg font-bold">{round.name}</h4>
+                  <div className="grid grid-cols-5 gap-10">
+                    {rounds.map((round) => (
+                      <div key={round.name} className="flex h-full flex-col">
+                        <h4 className="mb-3 text-center text-lg font-bold">{round.name}</h4>
 
-                            <div
-                              className={
-                                round.name === "Round of 32"
-                                  ? "grid grid-cols-2 gap-2"
-                                  : "space-y-2"
-                              }
-                            >
-                              {round.matches.map((match) => {
-                                const team1 = match.teamA;
-                                const team2 = match.teamB;
-                                const winner = bracketWinners[match.matchNumber] || null;
-                                const isWinner1 = winner === team1;
-                                const isWinner2 = winner === team2;
-                                const matchupReady = Boolean(team1 && team2);
+                        <div
+                          className={
+                            round.name === "Round of 32"
+                              ? "grid grid-cols-2 gap-3"
+                              : "space-y-3"
+                          }
+                        >
+                          {round.matches.map((match) => {
+                            const team1 = match.teamA;
+                            const team2 = match.teamB;
+                            const winner = bracketWinners[match.matchNumber] || null;
+                            const isWinner1 = winner === team1;
+                            const isWinner2 = winner === team2;
+                            const matchupReady = Boolean(team1 && team2);
 
-                                return (
-                                  <div
-                                    key={match.matchNumber}
-                                    className="border border-gray-600 p-3 rounded bg-gray-900"
-                                  >
-                                    <div className="space-y-2">
-                                      {team1 ? (
-                                        <div
-                                          onClick={() =>
-                                            selectWinner(match.matchNumber, team1, team1, team2)
-                                          }
-                                          className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                            isWinner1
-                                              ? "bg-yellow-600 border-yellow-400"
-                                              : matchupReady
-                                                ? "hover:bg-gray-800 cursor-pointer"
-                                                : "opacity-50 cursor-not-allowed"
-                                          }`}
-                                        >
-                                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                                          <img
-                                            src={`/flags/${team1}.png`}
-                                            alt={`${team1} flag`}
-                                            className="h-[15px] w-[20px] object-cover"
-                                          />
-                                          <span className="text-sm font-semibold">{team1}</span>
-                                        </div>
-                                      ) : (
-                                        <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
-                                          <span className="text-sm text-gray-400">TBD</span>
-                                        </div>
-                                      )}
-
-                                      <div className="text-center text-xs text-gray-400">vs</div>
-
-                                      {team2 ? (
-                                        <div
-                                          onClick={() =>
-                                            selectWinner(match.matchNumber, team2, team1, team2)
-                                          }
-                                          className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                            isWinner2
-                                              ? "bg-yellow-600 border-yellow-400"
-                                              : matchupReady
-                                                ? "hover:bg-gray-800 cursor-pointer"
-                                                : "opacity-50 cursor-not-allowed"
-                                          }`}
-                                        >
-                                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                                          <img
-                                            src={`/flags/${team2}.png`}
-                                            alt={`${team2} flag`}
-                                            className="h-[15px] w-[20px] object-cover"
-                                          />
-                                          <span className="text-sm font-semibold">{team2}</span>
-                                        </div>
-                                      ) : (
-                                        <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
-                                          <span className="text-sm text-gray-400">TBD</span>
-                                        </div>
-                                      )}
+                            return (
+                              <div
+                                key={match.matchNumber}
+                                className="border border-gray-600 p-3 rounded bg-gray-900"
+                              >
+                                <div className="space-y-2">
+                                  {team1 ? (
+                                    <div
+                                      onClick={() =>
+                                        selectWinner(match.matchNumber, team1, team1, team2)
+                                      }
+                                      className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
+                                        isWinner1
+                                          ? "bg-yellow-600 border-yellow-400"
+                                          : matchupReady
+                                            ? "hover:bg-gray-800 cursor-pointer"
+                                            : "opacity-50 cursor-not-allowed"
+                                      }`}
+                                    >
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={`/flags/${team1}.png`}
+                                        alt={`${team1} flag`}
+                                        className="h-[15px] w-[20px] object-cover"
+                                      />
+                                      <span className="text-sm font-semibold">{team1}</span>
                                     </div>
-                                  </div>
-                                );
-                              })}
+                                  ) : (
+                                    <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
+                                      <span className="text-sm text-gray-400">TBD</span>
+                                    </div>
+                                  )}
+
+                                  <div className="text-center text-xs text-gray-400">vs</div>
+
+                                  {team2 ? (
+                                    <div
+                                      onClick={() =>
+                                        selectWinner(match.matchNumber, team2, team1, team2)
+                                      }
+                                      className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
+                                        isWinner2
+                                          ? "bg-yellow-600 border-yellow-400"
+                                          : matchupReady
+                                            ? "hover:bg-gray-800 cursor-pointer"
+                                            : "opacity-50 cursor-not-allowed"
+                                      }`}
+                                    >
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={`/flags/${team2}.png`}
+                                        alt={`${team2} flag`}
+                                        className="h-[15px] w-[20px] object-cover"
+                                      />
+                                      <span className="text-sm font-semibold">{team2}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
+                                      <span className="text-sm text-gray-400">TBD</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {round.name === "Final" && predictedChampion && (
+                          <div className="mt-8 flex-1 flex items-end">
+                            <div className="w-full border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-6 py-6">
+                              <div className="flex items-center justify-center gap-6">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src="/images/goalcast_trophy.png"
+                                  alt="Trophy"
+                                  className="h-[160px] w-auto object-contain"
+                                />
+
+                                <div className="flex flex-col items-center text-center">
+                                  <p className="mb-4 text-2xl font-bold uppercase tracking-wide text-gray-200">
+                                    2026 World Cup Champion
+                                  </p>
+
+                                  <p className="text-7xl font-extrabold leading-none text-yellow-400">
+                                    {predictedChampion}
+                                  </p>
+
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={`/flags/${predictedChampion}.png`}
+                                    alt={`${predictedChampion} flag`}
+                                    className="mt-5 h-[120px] w-[180px] object-cover border border-gray-500"
+                                  />
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        ))}
+                        )}
                       </div>
-                    </div>
-
-                    {predictedChampion && (
-                      <div className="w-[420px] shrink-0 self-end">
-                        <div className="flex items-center justify-center gap-8 border-2 border-yellow-400 bg-yellow-500/10 px-8 py-8 rounded-xl min-h-[320px]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src="/images/goalcast_trophy.png"
-                            alt="Trophy"
-                            className="h-[180px] w-auto object-contain"
-                          />
-
-                          <div className="flex flex-col items-center text-center">
-                            <p className="text-xl font-bold uppercase tracking-wide text-gray-200 mb-4">
-                              2026 World Cup Champion
-                            </p>
-
-                            <p className="text-7xl font-extrabold text-yellow-400 leading-none">
-                              {predictedChampion}
-                            </p>
-
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={`/flags/${predictedChampion}.png`}
-                              alt={`${predictedChampion} flag`}
-                              className="mt-5 h-[130px] w-[195px] object-cover border border-gray-500"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               </div>    
