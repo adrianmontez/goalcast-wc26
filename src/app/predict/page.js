@@ -252,6 +252,15 @@ export default function Predict() {
     }
   }
 
+  function downloadBracketImage() {
+    if (!generatedBracketImage) return;
+
+    const link = document.createElement("a");
+    link.href = generatedBracketImage;
+    link.download = "goalcast-wc26-bracket.png";
+    link.click();
+  }
+
   const selectWinner = (matchId, winner, teamA, teamB) => {
     // Do not allow picks until both teams are known
     if (!teamA || !teamB) return;
