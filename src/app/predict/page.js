@@ -624,58 +624,65 @@ export default function Predict() {
                                 const matchupReady = Boolean(team1 && team2);
 
                                 return (
-                                  <div key={match.matchNumber} className="space-y-2">
-                                    <div
-                                      onClick={() =>
-                                        selectWinner(match.matchNumber, team1, team1, team2)
-                                      }
-                                      className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                        isWinner1
-                                          ? "bg-yellow-600 border-yellow-400"
-                                          : matchupReady
-                                            ? "hover:bg-gray-800 cursor-pointer"
-                                            : "opacity-50 cursor-not-allowed"
-                                      }`}
-                                    >
+                                  <div
+                                    key={match.matchNumber}
+                                    className="border border-gray-600 p-3 rounded bg-gray-900"
+                                  >
+                                    <div className="space-y-2">
                                       {team1 ? (
-                                        <>
+                                        <div
+                                          onClick={() =>
+                                            selectWinner(match.matchNumber, team1, team1, team2)
+                                          }
+                                          className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
+                                            isWinner1
+                                              ? "bg-yellow-600 border-yellow-400"
+                                              : matchupReady
+                                                ? "hover:bg-gray-800 cursor-pointer"
+                                                : "opacity-50 cursor-not-allowed"
+                                          }`}
+                                        >
                                           {/* eslint-disable-next-line @next/next/no-img-element */}
                                           <img
                                             src={`/flags/${team1}.png`}
                                             alt={`${team1} flag`}
                                             className="h-[15px] w-[20px] object-cover"
                                           />
-                                          <span>{team1}</span>
-                                        </>
+                                          <span className="text-sm font-semibold">{team1}</span>
+                                        </div>
                                       ) : (
-                                        <span>TBD</span>
+                                        <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
+                                          <span className="text-sm text-gray-400">TBD</span>
+                                        </div>
                                       )}
-                                    </div>
 
-                                    <div
-                                      onClick={() =>
-                                        selectWinner(match.matchNumber, team2, team1, team2)
-                                      }
-                                      className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                        isWinner2
-                                          ? "bg-yellow-600 border-yellow-400"
-                                          : matchupReady
-                                            ? "hover:bg-gray-800 cursor-pointer"
-                                            : "opacity-50 cursor-not-allowed"
-                                      }`}
-                                    >
+                                      <div className="text-center text-xs text-gray-400">vs</div>
+
                                       {team2 ? (
-                                        <>
+                                        <div
+                                          onClick={() =>
+                                            selectWinner(match.matchNumber, team2, team1, team2)
+                                          }
+                                          className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
+                                            isWinner2
+                                              ? "bg-yellow-600 border-yellow-400"
+                                              : matchupReady
+                                                ? "hover:bg-gray-800 cursor-pointer"
+                                                : "opacity-50 cursor-not-allowed"
+                                          }`}
+                                        >
                                           {/* eslint-disable-next-line @next/next/no-img-element */}
                                           <img
                                             src={`/flags/${team2}.png`}
                                             alt={`${team2} flag`}
                                             className="h-[15px] w-[20px] object-cover"
                                           />
-                                          <span>{team2}</span>
-                                        </>
+                                          <span className="text-sm font-semibold">{team2}</span>
+                                        </div>
                                       ) : (
-                                        <span>TBD</span>
+                                        <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
+                                          <span className="text-sm text-gray-400">TBD</span>
+                                        </div>
                                       )}
                                     </div>
                                   </div>
