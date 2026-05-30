@@ -601,7 +601,7 @@ export default function Predict() {
                     Made on GoalCast
                   </p>
 
-                  <div className="grid grid-cols-5 gap-10">
+                  <div className="relative grid grid-cols-5 gap-10">
                     {rounds.map((round) => (
                       <div key={round.name} className="flex h-full flex-col">
                         <h4 className="mb-3 text-center text-lg font-bold">{round.name}</h4>
@@ -689,9 +689,9 @@ export default function Predict() {
                         </div>
                       </div>
                     ))}
-                    
+
                     {predictedChampion && (
-                      <div className="col-start-4 col-span-2 mt-4">
+                      <div className="absolute bottom-0 right-0 w-[38%]">
                         <div className="w-full overflow-hidden border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-6 py-5">
                           <div className="flex items-center justify-center gap-6">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
