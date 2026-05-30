@@ -197,6 +197,30 @@ export default function Predict() {
     return finalMatch?.winner || null;
   }
 
+  function preloadImage(src) {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined") {
+        resolve();
+        return;
+      }
+
+      const img = document.createElement("img");
+
+      const finish = () => {
+        resolve();
+      };
+
+      img.onload = finish;
+      img.onerror = finish;
+
+      img.src = src;
+
+      if (img.complete && img.naturalWidth > 0) {
+        finish();
+      }
+    });
+  }
+
   async function waitForImagesToLoad(element) {
     const images = Array.from(element.querySelectorAll("img"));
 
@@ -207,7 +231,7 @@ export default function Predict() {
         }
 
         return new Promise((resolve) => {
-          const timeout = setTimeout(resolve, 1500);
+          const timeout = setTimeout(resolve, 2000);
 
           img.onload = () => {
             clearTimeout(timeout);
@@ -223,6 +247,18 @@ export default function Predict() {
     );
   }
 
+  async function preloadExportImages() {
+    const predictedChampion = getPredictedChampion();
+
+    const imagesToPreload = [
+      "/images/goalcast_trophy.png",
+      "/images/goalcast_soccerball.png",
+      predictedChampion ? `/flags/${predictedChampion}.png` : null,
+    ].filter(Boolean);
+
+    await Promise.all(imagesToPreload.map((src) => preloadImage(src)));
+  }
+
   async function generateBracketImage() {
     if (!bracketImageRef.current) return;
     if (!isBracketComplete()) return;
@@ -230,13 +266,21 @@ export default function Predict() {
     setIsGeneratingImage(true);
 
     try {
+      await preloadExportImages();
+
       await waitForImagesToLoad(bracketImageRef.current);
 
       if (document.fonts) {
         await document.fonts.ready;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve);
+        });
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 700));
 
       const dataUrl = await toPng(bracketImageRef.current, {
         pixelRatio: 1,
@@ -379,6 +423,27 @@ export default function Predict() {
 
   return (
     <main className="relative min-h-screen bg-black text-white p-4 pb-12">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[9999px] top-0 opacity-0"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/goalcast_trophy.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+        />
+
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/goalcast_soccerball.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+        />
+      </div>
+
       <Image
         src="/images/goalcast_trophy.png"
         alt="GoalCast Trophy"
