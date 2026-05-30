@@ -394,18 +394,6 @@ export default function Schedule() {
       <div className="mb-6 flex w-full sm:w-fit border border-white text-xs sm:text-sm">
         <button
           type="button"
-          onClick={() => setScheduleView("group")}
-          className={
-            scheduleView === "group"
-              ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
-              : "flex-1 sm:flex-none bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
-          }
-        >
-          View by Group
-        </button>
-
-        <button
-          type="button"
           onClick={() => setScheduleView("datetime")}
           className={
             scheduleView === "datetime"
@@ -414,6 +402,18 @@ export default function Schedule() {
           }
         >
           View by Date/Time
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setScheduleView("group")}
+          className={
+            scheduleView === "group"
+              ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
+              : "flex-1 sm:flex-none bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
+          }
+        >
+          View by Group
         </button>
       </div>
 
