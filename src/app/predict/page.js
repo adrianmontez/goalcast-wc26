@@ -370,27 +370,6 @@ export default function Predict() {
 
   return (
     <main className="relative min-h-screen bg-black text-white p-4 pb-12">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-[9999px] top-0 opacity-0"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/goalcast_trophy.png"
-          alt=""
-          loading="eager"
-          decoding="async"
-        />
-
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/goalcast_soccerball.png"
-          alt=""
-          loading="eager"
-          decoding="async"
-        />
-      </div>
-
       <Image
         src="/images/goalcast_trophy.png"
         alt="GoalCast Trophy"
