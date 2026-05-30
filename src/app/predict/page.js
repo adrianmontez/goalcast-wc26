@@ -1,13 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 import TabBar from "@/components/TabBar";
 import { groups } from "@/data/wc2026Data";
 import { knockoutSeeding } from "@/data/knockoutSeeding";
 import { thirdPlaceMapping } from "@/data/thirdPlaceMapping";
 
 export default function Predict() {
+  const bracketImageRef = useRef(null);
+  const [generatedBracketImage, setGeneratedBracketImage] = useState("");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [rankings, setRankings] = useState(() => {
     if (typeof window === "undefined") return {};
     const saved = localStorage.getItem("wc2026_rankings");
@@ -162,6 +166,56 @@ export default function Predict() {
       return result;
     });
   };
+
+  function isBracketComplete() {
+    const bracketMatches = buildBracketMatches();
+
+    const predictionRounds = [
+      "Round of 32",
+      "Round of 16",
+      "Quarterfinals",
+      "Semifinals",
+      "Final",
+    ];
+
+    return bracketMatches
+      .filter((match) => predictionRounds.includes(match.roundType))
+      .every((match) => {
+        if (!match.teamA || !match.teamB) return false;
+
+        return Boolean(bracketWinners[match.matchNumber]);
+      });
+  }
+
+  async function generateBracketImage() {
+    if (!bracketImageRef.current) return;
+    if (!isBracketComplete()) return;
+
+    setIsGeneratingImage(true);
+
+    try {
+      const dataUrl = await toPng(bracketImageRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#000000",
+      });
+
+      setGeneratedBracketImage(dataUrl);
+    } catch (error) {
+      console.error("Failed to generate bracket image:", error);
+    }
+
+    setIsGeneratingImage(false);
+  }
+
+  function downloadBracketImage() {
+    if (!generatedBracketImage) return;
+
+    const link = document.createElement("a");
+    link.href = generatedBracketImage;
+    link.download = "goalcast-wc26-bracket.png";
+    link.click();
+  }
 
   const selectWinner = (matchId, winner, teamA, teamB) => {
     // Do not allow picks until both teams are known
@@ -521,86 +575,148 @@ export default function Predict() {
             }));
 
             return (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                {rounds.map((round) => (
-                  <div key={round.name} className="space-y-4">
-                    <h3 className="text-lg font-semibold text-center">{round.name}</h3>
-                    <div className={round.name === 'Round of 32' ? 'grid grid-cols-1 gap-2 md:grid-cols-2' : 'space-y-2'}>
-                      {round.matches.map((match) => {
-                        const team1 = match.teamA;
-                        const team2 = match.teamB;
-                        const winner = bracketWinners[match.matchNumber] || null;
-                        const isWinner1 = winner === team1;
-                        const isWinner2 = winner === team2;
-                        const matchupReady = Boolean(team1 && team2);
+              <div
+                ref={bracketImageRef}
+                className="bg-black text-white border border-gray-100 p-4"
+              >
+                <h3 className="text-xl font-bold text-center mb-2">
+                  2026 World Cup Predictions  
+                </h3> 
 
-                        return (
-                          <div key={match.matchNumber} className="border border-gray-600 p-3 rounded bg-gray-900">
-                            <div className="space-y-2">
-                              {team1 && (
-                                <div
-                                  onClick={() => selectWinner(match.matchNumber, team1, team1, team2)}
-                                  className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                    isWinner1
-                                      ? "bg-yellow-600 border-yellow-400"
-                                      : matchupReady
-                                        ? "hover:bg-gray-800 cursor-pointer"
-                                        : "opacity-50 cursor-not-allowed"
-                                  }`}
-                                >
-                                  <Image
-                                    src={`/flags/${team1}.png`}
-                                    alt={`${team1} flag`}
-                                    width={20}
-                                    height={15}
-                                    className="object-cover"
-                                  />
-                                  <span className="text-sm font-semibold">{team1}</span>
-                                </div>
-                              )}
-                              {!team1 && (
-                                <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
-                                  <span className="text-sm text-gray-400">TBD</span>
-                                </div>
-                              )}
-                              <div className="text-center text-xs text-gray-400">vs</div>
-                              {team2 && (
-                                <div
-                                  onClick={() => selectWinner(match.matchNumber, team2, team1, team2)}
-                                  className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
-                                    isWinner2
-                                      ? "bg-yellow-600 border-yellow-400"
-                                      : matchupReady
-                                        ? "hover:bg-gray-800 cursor-pointer"
-                                        : "opacity-50 cursor-not-allowed"
-                                  }`}
-                                >
-                                  <Image
-                                    src={`/flags/${team2}.png`}
-                                    alt={`${team2} flag`}
-                                    width={20}
-                                    height={15}
-                                    className="object-cover"
-                                  />
-                                  <span className="text-sm font-semibold">{team2}</span>
-                                </div>
-                              )}
-                              {!team2 && (
-                                <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
-                                  <span className="text-sm text-gray-400">TBD</span>
-                                </div>
-                              )}
+                <p className="text-xs text-gray-400 text-center mb-4">
+                  Made on GoalCast
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                  {rounds.map((round) => (
+                    <div key={round.name} className="space-y-4">
+                      <h3 className="text-lg font-semibold text-center">{round.name}</h3>
+                      <div className={round.name === 'Round of 32' ? 'grid grid-cols-1 gap-2 md:grid-cols-2' : 'space-y-2'}>
+                        {round.matches.map((match) => {
+                          const team1 = match.teamA;
+                          const team2 = match.teamB;
+                          const winner = bracketWinners[match.matchNumber] || null;
+                          const isWinner1 = winner === team1;
+                          const isWinner2 = winner === team2;
+                          const matchupReady = Boolean(team1 && team2);
+
+                          return (
+                            <div key={match.matchNumber} className="border border-gray-600 p-3 rounded bg-gray-900">
+                              <div className="space-y-2">
+                                {team1 && (
+                                  <div
+                                    onClick={() => selectWinner(match.matchNumber, team1, team1, team2)}
+                                    className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
+                                      isWinner1
+                                        ? "bg-yellow-600 border-yellow-400"
+                                        : matchupReady
+                                          ? "hover:bg-gray-800 cursor-pointer"
+                                          : "opacity-50 cursor-not-allowed"
+                                    }`}
+                                  >
+                                    <Image
+                                      src={`/flags/${team1}.png`}
+                                      alt={`${team1} flag`}
+                                      width={20}
+                                      height={15}
+                                      className="object-cover"
+                                    />
+                                    <span className="text-sm font-semibold">{team1}</span>
+                                  </div>
+                                )}
+                                {!team1 && (
+                                  <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
+                                    <span className="text-sm text-gray-400">TBD</span>
+                                  </div>
+                                )}
+                                <div className="text-center text-xs text-gray-400">vs</div>
+                                {team2 && (
+                                  <div
+                                    onClick={() => selectWinner(match.matchNumber, team2, team1, team2)}
+                                    className={`border border-gray-600 flex items-center justify-center gap-2 p-2 rounded ${
+                                      isWinner2
+                                        ? "bg-yellow-600 border-yellow-400"
+                                        : matchupReady
+                                          ? "hover:bg-gray-800 cursor-pointer"
+                                          : "opacity-50 cursor-not-allowed"
+                                    }`}
+                                  >
+                                    <Image
+                                      src={`/flags/${team2}.png`}
+                                      alt={`${team2} flag`}
+                                      width={20}
+                                      height={15}
+                                      className="object-cover"
+                                    />
+                                    <span className="text-sm font-semibold">{team2}</span>
+                                  </div>
+                                )}
+                                {!team2 && (
+                                  <div className="border border-gray-600 flex items-center justify-center gap-2 p-2 rounded bg-gray-700">
+                                    <span className="text-sm text-gray-400">TBD</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </div>  
             );
           })()}
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={generateBracketImage}
+              disabled={!isBracketComplete() || isGeneratingImage}
+              className={
+                isBracketComplete() && !isGeneratingImage
+                  ? "bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
+                  : "bg-gray-700 text-gray-400 px-4 py-2 rounded font-semibold cursor-not-allowed"
+              }
+            >
+              {isGeneratingImage
+                ? "Generating..."
+                : isBracketComplete()
+                  ? "Create Bracket Image"
+                  : "Finish all knockout picks first"}
+            </button>
+          </div>
         </section>
+      )}
+
+      {generatedBracketImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="max-w-3xl w-full bg-black border border-white p-4">
+            <h3 className="text-lg font-semibold mb-4 text-white">
+              Your Bracket Image
+            </h3>
+
+            <img
+              src={generatedBracketImage}
+              alt="Generated bracket preview"
+              className="w-full h-auto border border-gray-700"
+            />
+
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={downloadBracketImage}
+                className="bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
+              >
+                Download Image
+              </button>
+
+              <button
+                onClick={() => setGeneratedBracketImage("")}
+                className="bg-gray-700 text-white px-4 py-2 rounded font-semibold hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <TabBar />
