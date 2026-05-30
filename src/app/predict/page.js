@@ -686,41 +686,41 @@ export default function Predict() {
                               </div>
                             );
                           })}
-
-                          {predictedChampion && (
-                            <div className="col-start-4 col-span-2 mt-4">
-                              <div className="w-full border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-6 py-6 overflow-hidden">
-                                <div className="flex items-center justify-center gap-8">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    src="/images/goalcast_trophy.png"
-                                    alt="Trophy"
-                                    className="h-[150px] w-auto object-contain shrink-0"
-                                  />
-
-                                  <div className="flex min-w-0 flex-col items-center text-center">
-                                    <p className="mb-4 text-2xl font-bold uppercase leading-tight tracking-wide text-gray-200">
-                                      2026 World Cup Champion
-                                    </p>
-
-                                    <p className="text-7xl font-extrabold leading-none text-yellow-400">
-                                      {predictedChampion}
-                                    </p>
-
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      src={`/flags/${predictedChampion}.png`}
-                                      alt={`${predictedChampion} flag`}
-                                      className="mt-5 h-[115px] w-[172px] object-cover border border-gray-500"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                     ))}
+                    
+                    {predictedChampion && (
+                      <div className="col-start-4 col-span-2 mt-4">
+                        <div className="w-full overflow-hidden border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-6 py-5">
+                          <div className="flex items-center justify-center gap-6">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src="/images/goalcast_trophy.png"
+                              alt="Trophy"
+                              className="h-[130px] w-auto max-w-[140px] object-contain shrink-0"
+                            />
+
+                            <div className="flex min-w-0 flex-col items-center text-center">
+                              <p className="mb-3 text-2xl font-bold uppercase leading-tight tracking-wide text-gray-200">
+                                2026 World Cup Champion
+                              </p>
+
+                              <p className="text-7xl font-extrabold leading-none text-yellow-400">
+                                {predictedChampion}
+                              </p>
+
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`/flags/${predictedChampion}.png`}
+                                alt={`${predictedChampion} flag`}
+                                className="mt-4 h-[105px] w-[158px] object-cover border border-gray-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>    
