@@ -194,6 +194,8 @@ export default function Predict() {
     setIsGeneratingImage(true);
 
     try {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      
       const dataUrl = await toPng(bracketImageRef.current, {
         cacheBust: true,
         pixelRatio: 2,
@@ -615,12 +617,11 @@ export default function Predict() {
                                             : "opacity-50 cursor-not-allowed"
                                       }`}
                                     >
-                                      <Image
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
                                         src={`/flags/${team1}.png`}
                                         alt={`${team1} flag`}
-                                        width={20}
-                                        height={15}
-                                        className="object-cover"
+                                        className="h-[15px] w-[20px] object-cover"
                                       />
                                       <span className="text-sm font-semibold">{team1}</span>
                                     </div>
@@ -642,12 +643,11 @@ export default function Predict() {
                                             : "opacity-50 cursor-not-allowed"
                                       }`}
                                     >
-                                      <Image
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
                                         src={`/flags/${team2}.png`}
                                         alt={`${team2} flag`}
-                                        width={20}
-                                        height={15}
-                                        className="object-cover"
+                                        className="h-[15px] w-[20px] object-cover"
                                       />
                                       <span className="text-sm font-semibold">{team2}</span>
                                     </div>
