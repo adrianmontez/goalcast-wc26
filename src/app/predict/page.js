@@ -216,22 +216,23 @@ export default function Predict() {
 
   function preloadImage(src) {
     return new Promise((resolve) => {
-      const img = new window.Image();
-
-      img.onload = async () => {
-        try {
-          if (img.decode) {
-            await img.decode();
-          }
-        } catch {
-          // Ignore decode errors and continue
-        }
-
+      if (typeof window === "undefined") {
         resolve();
-      };
+        return;
+      }
 
-      img.onerror = resolve;
+      const img = document.createElement("img");
+
+      const finish = () => resolve();
+
+      img.onload = finish;
+      img.onerror = finish;
+
       img.src = src;
+
+      if (img.complete) {
+        finish();
+      }
     });
   }
 
@@ -262,23 +263,17 @@ export default function Predict() {
         await document.fonts.ready;
       }
 
-      await new Promise((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(resolve);
-        });
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const dataUrl = await toPng(bracketImageRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 1.5,
         backgroundColor: "#000000",
       });
 
       setGeneratedBracketImage(dataUrl);
     } catch (error) {
       console.error("Failed to generate bracket image:", error);
+      alert("The bracket image could not be created. Please try again.");
     } finally {
       setIsGeneratingImage(false);
     }
