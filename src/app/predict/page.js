@@ -12,6 +12,11 @@ export default function Predict() {
   const bracketImageRef = useRef(null);
   const [generatedBracketImage, setGeneratedBracketImage] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  const [trophyImageSrc, setTrophyImageSrc] = useState("/images/goalcast_trophy.png");
+  const [soccerBallImageSrc, setSoccerBallImageSrc] = useState("/images/goalcast_soccerball.png");
+  const [exportImagesReady, setExportImagesReady] = useState(false);
+
   const [rankings, setRankings] = useState(() => {
     if (typeof window === "undefined") return {};
     const saved = localStorage.getItem("wc2026_rankings");
@@ -259,6 +264,64 @@ export default function Predict() {
     await Promise.all(imagesToPreload.map((src) => preloadImage(src)));
   }
 
+  async function imagePathToDataUrl(src) {
+    try {
+      const response = await fetch(src, {
+        cache: "force-cache",
+      });
+
+      const blob = await response.blob();
+
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+          resolve(reader.result);
+        };
+
+        reader.onerror = () => {
+          resolve(src);
+        };
+
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return src;
+    }
+  }
+
+  async function loadExportImageDataUrls() {
+    const [trophyDataUrl, soccerBallDataUrl] = await Promise.all([
+      imagePathToDataUrl("/images/goalcast_trophy.png"),
+      imagePathToDataUrl("/images/goalcast_soccerball.png"),
+    ]);
+
+    setTrophyImageSrc(trophyDataUrl);
+    setSoccerBallImageSrc(soccerBallDataUrl);
+    setExportImagesReady(true);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.resolve().then(async () => {
+      const [trophyDataUrl, soccerBallDataUrl] = await Promise.all([
+        imagePathToDataUrl("/images/goalcast_trophy.png"),
+        imagePathToDataUrl("/images/goalcast_soccerball.png"),
+      ]);
+
+      if (cancelled) return;
+
+      setTrophyImageSrc(trophyDataUrl);
+      setSoccerBallImageSrc(soccerBallDataUrl);
+      setExportImagesReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function generateBracketImage() {
     if (!bracketImageRef.current) return;
     if (!isBracketComplete()) return;
@@ -266,19 +329,21 @@ export default function Predict() {
     setIsGeneratingImage(true);
 
     try {
-      await preloadExportImages();
+      if (!exportImagesReady) {
+        await loadExportImageDataUrls();
+
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(resolve);
+          });
+        });
+      }
 
       await waitForImagesToLoad(bracketImageRef.current);
 
       if (document.fonts) {
         await document.fonts.ready;
       }
-
-      await new Promise((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(resolve);
-        });
-      });
 
       await new Promise((resolve) => setTimeout(resolve, 700));
 
@@ -429,18 +494,20 @@ export default function Predict() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/goalcast_trophy.png"
-          alt=""
+          src={trophyImageSrc}
+          alt="Trophy"
           loading="eager"
           decoding="async"
+          className="h-[165px] w-auto object-contain shrink-0"
         />
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/goalcast_soccerball.png"
-          alt=""
+          src={soccerBallImageSrc}
+          alt="Soccer ball"
           loading="eager"
           decoding="async"
+          className="h-[30px] w-[30px] object-contain"
         />
       </div>
 
@@ -693,11 +760,11 @@ export default function Predict() {
                   <div className="mb-3 flex items-center justify-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/images/goalcast_soccerball.png"
+                      src={soccerBallImageSrc}
                       alt="Soccer ball"
                       loading="eager"
                       decoding="async"
-                      className="h-[42px] w-[42px] object-contain"
+                      className="h-[30px] w-[30px] object-contain"
                     />
 
                     <h3 className="text-3xl font-extrabold text-center">
@@ -706,11 +773,11 @@ export default function Predict() {
 
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/images/goalcast_soccerball.png"
+                      src={soccerBallImageSrc}
                       alt="Soccer ball"
                       loading="eager"
                       decoding="async"
-                      className="h-[42px] w-[42px] object-contain"
+                      className="h-[30px] w-[30px] object-contain"
                     />
                   </div> 
 
@@ -812,7 +879,7 @@ export default function Predict() {
                         <div className="flex items-stretch justify-end gap-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src="/images/goalcast_trophy.png"
+                            src={trophyImageSrc}
                             alt="Trophy"
                             loading="eager"
                             decoding="async"
@@ -848,7 +915,7 @@ export default function Predict() {
           <div className="mt-6 flex justify-center">
             <button
               onClick={generateBracketImage}
-              disabled={!isBracketComplete() || isGeneratingImage}
+              disabled={!isBracketComplete() || isGeneratingImage || !exportImagesReady}
               className={
                 isBracketComplete() && !isGeneratingImage
                   ? "bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
@@ -857,9 +924,11 @@ export default function Predict() {
             >
               {isGeneratingImage
                 ? "Generating..."
-                : isBracketComplete()
-                  ? "Create Bracket Image"
-                  : "Finish all knockout picks first"}
+                : !exportImagesReady
+                  ? "Preparing image..."
+                  : isBracketComplete()
+                    ? "Create Bracket Image"
+                    : "Finish all knockout picks first"}
             </button>
           </div>
         </section>
