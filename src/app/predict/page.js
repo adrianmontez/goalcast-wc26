@@ -13,9 +13,10 @@ export default function Predict() {
   const [generatedBracketImage, setGeneratedBracketImage] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
-  const [trophyImageSrc, setTrophyImageSrc] = useState("/images/goalcast_trophy.png");
-  const [soccerBallImageSrc, setSoccerBallImageSrc] = useState("/images/goalcast_soccerball.png");
-  const [exportImagesReady, setExportImagesReady] = useState(false);
+  const exportImageDataUrlsRef = useRef({
+    trophy: null,
+    soccerBall: null,
+  });
 
   const [rankings, setRankings] = useState(() => {
     if (typeof window === "undefined") return {};
@@ -290,15 +291,43 @@ export default function Predict() {
     }
   }
 
-  async function loadExportImageDataUrls() {
+  async function getExportImageDataUrls() {
+    if (
+      exportImageDataUrlsRef.current.trophy &&
+      exportImageDataUrlsRef.current.soccerBall
+    ) {
+      return exportImageDataUrlsRef.current;
+    }
+
     const [trophyDataUrl, soccerBallDataUrl] = await Promise.all([
       imagePathToDataUrl("/images/goalcast_trophy.png"),
       imagePathToDataUrl("/images/goalcast_soccerball.png"),
     ]);
 
-    setTrophyImageSrc(trophyDataUrl);
-    setSoccerBallImageSrc(soccerBallDataUrl);
-    setExportImagesReady(true);
+    exportImageDataUrlsRef.current = {
+      trophy: trophyDataUrl,
+      soccerBall: soccerBallDataUrl,
+    };
+
+    return exportImageDataUrlsRef.current;
+  }
+
+  async function forceExportImageSources() {
+    if (!bracketImageRef.current) return;
+
+    const imageDataUrls = await getExportImageDataUrls();
+
+    bracketImageRef.current
+      .querySelectorAll('[data-export-image="trophy"]')
+      .forEach((img) => {
+        img.src = imageDataUrls.trophy;
+      });
+
+    bracketImageRef.current
+      .querySelectorAll('[data-export-image="soccer-ball"]')
+      .forEach((img) => {
+        img.src = imageDataUrls.soccerBall;
+      });
   }
 
   useEffect(() => {
@@ -323,43 +352,41 @@ export default function Predict() {
   }, []);
 
   async function generateBracketImage() {
-    if (!bracketImageRef.current) return;
-    if (!isBracketComplete()) return;
+  if (!bracketImageRef.current) return;
+  if (!isBracketComplete()) return;
 
-    setIsGeneratingImage(true);
+  setIsGeneratingImage(true);
 
-    try {
-      if (!exportImagesReady) {
-        await loadExportImageDataUrls();
+  try {
+    await forceExportImageSources();
 
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(resolve);
-          });
-        });
-      }
+    await waitForImagesToLoad(bracketImageRef.current);
 
-      await waitForImagesToLoad(bracketImageRef.current);
-
-      if (document.fonts) {
-        await document.fonts.ready;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 700));
-
-      const dataUrl = await toPng(bracketImageRef.current, {
-        pixelRatio: 1,
-        backgroundColor: "#000000",
-      });
-
-      setGeneratedBracketImage(dataUrl);
-    } catch (error) {
-      console.error("Failed to generate bracket image:", error);
-      alert("The bracket image could not be created. Please try again.");
-    } finally {
-      setIsGeneratingImage(false);
+    if (document.fonts) {
+      await document.fonts.ready;
     }
+
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 700));
+
+    const dataUrl = await toPng(bracketImageRef.current, {
+      pixelRatio: 1,
+      backgroundColor: "#000000",
+    });
+
+    setGeneratedBracketImage(dataUrl);
+  } catch (error) {
+    console.error("Failed to generate bracket image:", error);
+    alert("The bracket image could not be created. Please try again.");
+  } finally {
+    setIsGeneratingImage(false);
   }
+}
 
   function downloadBracketImage() {
     if (!generatedBracketImage) return;
@@ -494,7 +521,8 @@ export default function Predict() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={trophyImageSrc}
+          data-export-image="trophy"
+          src="/images/goalcast_trophy.png"
           alt="Trophy"
           loading="eager"
           decoding="async"
@@ -503,7 +531,8 @@ export default function Predict() {
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={soccerBallImageSrc}
+          data-export-image="soccer-ball"
+          src="/images/goalcast_soccerball.png"
           alt="Soccer ball"
           loading="eager"
           decoding="async"
@@ -760,7 +789,8 @@ export default function Predict() {
                   <div className="mb-3 flex items-center justify-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={soccerBallImageSrc}
+                      data-export-image="soccer-ball"
+                      src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
                       loading="eager"
                       decoding="async"
@@ -773,7 +803,8 @@ export default function Predict() {
 
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={soccerBallImageSrc}
+                      data-export-image="soccer-ball"
+                      src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
                       loading="eager"
                       decoding="async"
@@ -879,7 +910,8 @@ export default function Predict() {
                         <div className="flex items-stretch justify-end gap-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={trophyImageSrc}
+                            data-export-image="trophy"
+                            src="/images/goalcast_trophy.png"
                             alt="Trophy"
                             loading="eager"
                             decoding="async"
@@ -917,7 +949,7 @@ export default function Predict() {
               onClick={generateBracketImage}
               disabled={!isBracketComplete() || isGeneratingImage || !exportImagesReady}
               className={
-                isBracketComplete() && !isGeneratingImage
+                isBracketComplete() && !isGeneratingImage && exportImagesReady
                   ? "bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
                   : "bg-gray-700 text-gray-400 px-4 py-2 rounded font-semibold cursor-not-allowed"
               }
