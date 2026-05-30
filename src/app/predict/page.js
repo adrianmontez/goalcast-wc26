@@ -343,7 +343,6 @@ export default function Predict() {
 
       setTrophyImageSrc(trophyDataUrl);
       setSoccerBallImageSrc(soccerBallDataUrl);
-      setExportImagesReady(true);
     });
 
     return () => {
@@ -947,20 +946,18 @@ export default function Predict() {
           <div className="mt-6 flex justify-center">
             <button
               onClick={generateBracketImage}
-              disabled={!isBracketComplete() || isGeneratingImage || !exportImagesReady}
+              disabled={!isBracketComplete() || isGeneratingImage}
               className={
-                isBracketComplete() && !isGeneratingImage && exportImagesReady
+                isBracketComplete() && !isGeneratingImage
                   ? "bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
                   : "bg-gray-700 text-gray-400 px-4 py-2 rounded font-semibold cursor-not-allowed"
               }
             >
               {isGeneratingImage
                 ? "Generating..."
-                : !exportImagesReady
-                  ? "Preparing image..."
-                  : isBracketComplete()
-                    ? "Create Bracket Image"
-                    : "Finish all knockout picks first"}
+                : isBracketComplete()
+                  ? "Create Bracket Image"
+                  : "Finish all knockout picks first"}
             </button>
           </div>
         </section>
