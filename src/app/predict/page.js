@@ -591,7 +591,7 @@ export default function Predict() {
               <div className="overflow-x-auto">
                 <div
                   ref={bracketImageRef}
-                  className="w-[1400px] bg-black text-white border border-gray-700 p-6"
+                  className="w-[1800px] bg-black text-white border border-gray-700 p-6 overflow-hidden"
                 >
                   <h3 className="text-xl font-bold text-center mb-2">
                     2026 World Cup Predictions  
@@ -686,39 +686,39 @@ export default function Predict() {
                               </div>
                             );
                           })}
-                        </div>
 
-                        {round.name === "Final" && predictedChampion && (
-                          <div className="mt-8 flex-1 flex items-end">
-                            <div className="w-full border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-6 py-6">
-                              <div className="flex items-center justify-center gap-6">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src="/images/goalcast_trophy.png"
-                                  alt="Trophy"
-                                  className="h-[160px] w-auto object-contain"
-                                />
-
-                                <div className="flex flex-col items-center text-center">
-                                  <p className="mb-4 text-2xl font-bold uppercase tracking-wide text-gray-200">
-                                    2026 World Cup Champion
-                                  </p>
-
-                                  <p className="text-7xl font-extrabold leading-none text-yellow-400">
-                                    {predictedChampion}
-                                  </p>
-
+                          {predictedChampion && (
+                            <div className="col-start-4 col-span-2 mt-4">
+                              <div className="w-full border-2 border-yellow-400 bg-yellow-500/10 rounded-xl px-6 py-6 overflow-hidden">
+                                <div className="flex items-center justify-center gap-8">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={`/flags/${predictedChampion}.png`}
-                                    alt={`${predictedChampion} flag`}
-                                    className="mt-5 h-[120px] w-[180px] object-cover border border-gray-500"
+                                    src="/images/goalcast_trophy.png"
+                                    alt="Trophy"
+                                    className="h-[150px] w-auto object-contain shrink-0"
                                   />
+
+                                  <div className="flex min-w-0 flex-col items-center text-center">
+                                    <p className="mb-4 text-2xl font-bold uppercase leading-tight tracking-wide text-gray-200">
+                                      2026 World Cup Champion
+                                    </p>
+
+                                    <p className="text-7xl font-extrabold leading-none text-yellow-400">
+                                      {predictedChampion}
+                                    </p>
+
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={`/flags/${predictedChampion}.png`}
+                                      alt={`${predictedChampion} flag`}
+                                      className="mt-5 h-[115px] w-[172px] object-cover border border-gray-500"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
