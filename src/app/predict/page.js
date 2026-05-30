@@ -214,6 +214,39 @@ export default function Predict() {
     );
   }
 
+  function preloadImage(src) {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+
+      img.onload = async () => {
+        try {
+          if (img.decode) {
+            await img.decode();
+          }
+        } catch {
+          // Ignore decode errors and continue
+        }
+
+        resolve();
+      };
+
+      img.onerror = resolve;
+      img.src = src;
+    });
+  }
+
+  async function preloadExportImages() {
+    const predictedChampion = getPredictedChampion();
+
+    const imagesToPreload = [
+      "/images/goalcast_trophy.png",
+      "/images/goalcast_soccerball.png",
+      predictedChampion ? `/flags/${predictedChampion}.png` : null,
+    ].filter(Boolean);
+
+    await Promise.all(imagesToPreload.map((src) => preloadImage(src)));
+  }
+
   async function generateBracketImage() {
     if (!bracketImageRef.current) return;
     if (!isBracketComplete()) return;
@@ -221,7 +254,7 @@ export default function Predict() {
     setIsGeneratingImage(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await preloadExportImages();
 
       await waitForImagesToLoad(bracketImageRef.current);
 
@@ -229,7 +262,13 @@ export default function Predict() {
         await document.fonts.ready;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve);
+        });
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       const dataUrl = await toPng(bracketImageRef.current, {
         cacheBust: true,
@@ -240,18 +279,9 @@ export default function Predict() {
       setGeneratedBracketImage(dataUrl);
     } catch (error) {
       console.error("Failed to generate bracket image:", error);
+    } finally {
+      setIsGeneratingImage(false);
     }
-
-    setIsGeneratingImage(false);
-  }
-
-  function downloadBracketImage() {
-    if (!generatedBracketImage) return;
-
-    const link = document.createElement("a");
-    link.href = generatedBracketImage;
-    link.download = "goalcast-wc26-bracket.png";
-    link.click();
   }
 
   const selectWinner = (matchId, winner, teamA, teamB) => {
@@ -372,6 +402,27 @@ export default function Predict() {
 
   return (
     <main className="relative min-h-screen bg-black text-white p-4 pb-12">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[9999px] top-0 opacity-0"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/goalcast_trophy.png"
+          alt=""
+          loading="eager"
+          decoding="sync"
+        />
+
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/goalcast_soccerball.png"
+          alt=""
+          loading="eager"
+          decoding="sync"
+        />
+      </div>
+
       <Image
         src="/images/goalcast_trophy.png"
         alt="GoalCast Trophy"
