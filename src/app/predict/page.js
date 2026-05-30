@@ -197,6 +197,23 @@ export default function Predict() {
     return finalMatch?.winner || null;
   }
 
+  async function waitForImagesToLoad(element) {
+    const images = Array.from(element.querySelectorAll("img"));
+
+    await Promise.all(
+      images.map((img) => {
+        if (img.complete && img.naturalWidth > 0) {
+          return Promise.resolve();
+        }
+
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      })
+    );
+  }
+
   async function generateBracketImage() {
     if (!bracketImageRef.current) return;
     if (!isBracketComplete()) return;
@@ -205,6 +222,14 @@ export default function Predict() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
+
+      await waitForImagesToLoad(bracketImageRef.current);
+
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const dataUrl = await toPng(bracketImageRef.current, {
         cacheBust: true,
@@ -598,6 +623,8 @@ export default function Predict() {
                     <img
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
+                      loading="eager"
+                      decoding="sync"
                       className="h-[42px] w-[42px] object-contain"
                     />
 
@@ -609,6 +636,8 @@ export default function Predict() {
                     <img
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
+                      loading="eager"
+                      decoding="sync"
                       className="h-[42px] w-[42px] object-contain"
                     />
                   </div> 
@@ -713,6 +742,8 @@ export default function Predict() {
                           <img
                             src="/images/goalcast_trophy.png"
                             alt="Trophy"
+                            loading="eager"
+                            decoding="sync"
                             className="h-[165px] w-auto object-contain shrink-0"
                           />
 
