@@ -598,7 +598,7 @@ export default function Predict() {
                     <img
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
-                      className="h-[42px] w-[42px] object-contain"
+                      className="h-[56px] w-[56px] object-contain"
                     />
 
                     <h3 className="text-3xl font-extrabold text-center">
@@ -609,7 +609,7 @@ export default function Predict() {
                     <img
                       src="/images/goalcast_soccerball.png"
                       alt="Soccer ball"
-                      className="h-[42px] w-[42px] object-contain"
+                      className="h-[56px] w-[56px] object-contain"
                     />
                   </div> 
 
