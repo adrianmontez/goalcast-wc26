@@ -101,7 +101,7 @@ export default function Standings() {
 
     loadLiveStandings();
 
-    const interval = setInterval(loadLiveStandings, 30000);
+    const interval = setInterval(loadLiveStandings, 60000);
 
     return () => {
       cancelled = true;

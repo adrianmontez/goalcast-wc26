@@ -69,7 +69,7 @@ export async function GET() {
         "x-apisports-key": process.env.API_FOOTBALL_KEY,
       },
       next: {
-        revalidate: 30,
+        revalidate: 60,
       },
     });
 
@@ -172,7 +172,7 @@ export async function GET() {
       },
       {
         headers: {
-          "Cache-Control": "s-maxage=30, stale-while-revalidate=120",
+          "Cache-Control": "s-maxage=60, stale-while-revalidate=300",
         },
       }
     );
