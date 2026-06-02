@@ -8,9 +8,12 @@ import { matches } from "@/data/wc2026Data";
 export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
   const [openMatchesLoaded, setOpenMatchesLoaded] = useState(false);
-
   const [scheduleView, setScheduleView] = useState("datetime");
   
+  const [scheduleMatches, setScheduleMatches] = useState(matches);
+  const [liveDataStatus, setLiveDataStatus] = useState("loading");
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState(null);
+
   const [votes, setVotes] = useState({});
 
   const [myVotes, setMyVotes] = useState(() => {
@@ -198,6 +201,40 @@ export default function Schedule() {
     return hours * 60 + minutes;
   }
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLiveMatches() {
+      try {
+        const response = await fetch("/api/live/matches");
+        const data = await response.json();
+
+        if (cancelled) return;
+
+        if (data.ok && data.matches) {
+          setScheduleMatches(data.matches);
+          setLiveDataStatus("live");
+          setLiveUpdatedAt(data.updatedAt);
+        } else {
+          console.error("Live match data failed:", data);
+          setLiveDataStatus("static");
+        }
+      } catch (error) {
+        console.error("Could not load live matches:", error);
+        setLiveDataStatus("static");
+      }
+    }
+
+    loadLiveMatches();
+
+    const interval = setInterval(loadLiveMatches, 30000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
   function dateAndTimeValue(match) {
     const dateValue = new Date(match.date).getTime();
     const timeValue = timeToMinutes(match.time);
@@ -236,7 +273,7 @@ export default function Schedule() {
     return safeDateValue + timeToMinutes(match.time) * 60 * 1000;
   }
 
-  const groupedMatches = matches.reduce((acc, match) => {
+  const groupedMatches = scheduleMatches.reduce((acc, match) => {
     if (!acc[match.group]) acc[match.group] = [];
     acc[match.group].push(match);
     return acc;
@@ -248,13 +285,20 @@ export default function Schedule() {
 
   const groupKeys = Object.keys(groupedMatches).sort();
 
-  const matchesByDateTime = [...matches].sort(
+  const matchesByDateTime = [...scheduleMatches].sort(
     (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
   );
 
   function renderMatchCard(match) {
     return (
-      <div key={match.id} className="border border-gray-700 p-3">
+      <div key={match.id} className="relative border border-gray-700 p-3">
+        {match.status === "live" && (
+          <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-red-400">
+            <span className="h-2 w-2 rounded-full bg-red-500"></span>
+            <span>•LIVE</span>
+          </div>
+        )}
+
         <div className="mb-2">
           <p className="text-[11px] text-gray-400">{match.date}</p>
         </div>
@@ -271,7 +315,27 @@ export default function Schedule() {
             <span className="font-semibold truncate">{match.home}</span>
           </div>
 
-          <span className="text-xs text-gray-400 shrink-0">vs</span>
+          <div className="shrink-0 text-center min-w-[42px]">
+            {match.homeScore !== null && match.awayScore !== null ? (
+              <>
+                <span className="text-sm font-bold text-white">
+                  {match.homeScore} - {match.awayScore}
+                </span>
+
+                {match.status === "live" && match.elapsed && (
+                  <p className="text-[10px] text-red-400">
+                    {match.elapsed}&apos;
+                  </p>
+                )}
+
+                {match.status === "finished" && (
+                  <p className="text-[10px] text-gray-400">FT</p>
+                )}
+              </>
+            ) : (
+              <span className="text-xs text-gray-400">vs</span>
+            )}
+          </div>
 
           <div className="flex items-center justify-end gap-2 min-w-0">
             <span className="font-semibold truncate">{match.away}</span>
@@ -387,8 +451,12 @@ export default function Schedule() {
 
       <h1 className="text-2xl sm:text-3xl font-bold mb-2">Match Schedule</h1>
 
-      <p className="text-sm text-gray-400 mb-6">
-        This page will be updated closer to the start of the tournament!
+      <p className="mb-2 text-xs text-gray-400">
+        {liveDataStatus === "live"
+          ? `Live data connected${liveUpdatedAt ? ` • Updated ${new Date(liveUpdatedAt).toLocaleTimeString()}` : ""}`
+          : liveDataStatus === "loading"
+            ? "Loading live data..."
+            : "Using saved schedule data"}
       </p>
 
       <div className="mb-6 flex w-full sm:w-fit border border-white text-xs sm:text-sm">

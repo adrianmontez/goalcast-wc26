@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { groups } from "@/data/wc2026Data";
@@ -45,18 +48,75 @@ function buildInitialStandings(groups) {
   }));
 }
 
+function addManualOrderAndSort(apiStandings) {
+  return apiStandings.map((groupData) => {
+    const hasApiRanks = groupData.teams.every(
+      (team) => typeof team.rank === "number"
+    );
+
+    return {
+      ...groupData,
+      teams: hasApiRanks
+        ? [...groupData.teams].sort((a, b) => a.rank - b.rank)
+        : sortStandingsTeams(
+            groupData.teams.map((team, index) => ({
+              ...team,
+              manualOrder: getManualOrder(team, index),
+            }))
+          ),
+    };
+  });
+}
+
 export default function Standings() {
-  const standings = buildInitialStandings(groups);
+  const [standings, setStandings] = useState(() => buildInitialStandings(groups));
+  const [liveDataStatus, setLiveDataStatus] = useState("loading");
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLiveStandings() {
+      try {
+        const response = await fetch("/api/live/standings");
+        const data = await response.json();
+
+        if (cancelled) return;
+
+        if (data.standings) {
+          setStandings(addManualOrderAndSort(data.standings));
+          setLiveUpdatedAt(data.updatedAt || null);
+          setLiveDataStatus(data.ok ? "live" : "static");
+        } else {
+          setLiveDataStatus("static");
+        }
+      } catch (error) {
+        console.error("Could not load live standings:", error);
+        setLiveDataStatus("static");
+      }
+    }
+
+    loadLiveStandings();
+
+    const interval = setInterval(loadLiveStandings, 30000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <main className="relative min-h-screen bg-black text-white p-4 sm:p-6 pb-20 sm:pb-14">
-      <Image
-        src="/images/goalcast_trophy.png"
-        alt="GoalCast Trophy"
-        width={50}
-        height={50}
-        className="absolute top-4 right-4 object-contain"
-      />
+      <div className="absolute top-4 right-4 h-[50px] w-[50px]">
+        <Image
+          src="/images/goalcast_trophy.png"
+          alt="GoalCast Trophy"
+          fill
+          sizes="50px"
+          className="object-contain"
+        />
+      </div>
 
       <h1 className="text-2xl sm:text-3xl font-bold mb-6">GoalCast WC26</h1>
 
@@ -65,8 +125,16 @@ export default function Standings() {
           Group Standings
         </h2>
 
-        <p className="text-xs sm:text-sm text-gray-400 mb-4">
-          The top 2 teams from each group advance, along with the 8 best 3rd place teams.
+        <p className="mb-6 text-xs text-gray-400">
+          {liveDataStatus === "live"
+            ? `Live standings connected${
+                liveUpdatedAt
+                  ? ` • Updated ${new Date(liveUpdatedAt).toLocaleTimeString()}`
+                  : ""
+              }`
+            : liveDataStatus === "loading"
+              ? "Loading live standings..."
+              : "Using saved standings data"}
         </p>
 
         <div className="space-y-6">
