@@ -73,8 +73,8 @@ export default function Standings() {
   const [liveDataStatus, setLiveDataStatus] = useState("loading");
   const [liveUpdatedAt, setLiveUpdatedAt] = useState(null);
 
-  const [showExtraStats, setShowExtraStats] = useState(false);
-  const [showExtraStatsLoaded, setShowExtraStatsLoaded] = useState(false);
+  const [expandedStandingsGroups, setExpandedStandingsGroups] = useState({});
+  const [expandedStandingsGroupsLoaded, setExpandedStandingsGroupsLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,15 +113,19 @@ export default function Standings() {
     let cancelled = false;
 
     Promise.resolve().then(() => {
-      const saved = localStorage.getItem("goalcast_show_extra_standings_stats");
+      const saved = localStorage.getItem("goalcast_expanded_standings_groups");
 
       if (cancelled) return;
 
-      if (saved === "true") {
-        setShowExtraStats(true);
+      if (saved) {
+        try {
+          setExpandedStandingsGroups(JSON.parse(saved));
+        } catch {
+          setExpandedStandingsGroups({});
+        }
       }
 
-      setShowExtraStatsLoaded(true);
+      setExpandedStandingsGroupsLoaded(true);
     });
 
     return () => {
@@ -130,21 +134,20 @@ export default function Standings() {
   }, []);
 
   useEffect(() => {
-    if (!showExtraStatsLoaded) return;
+    if (!expandedStandingsGroupsLoaded) return;
 
     localStorage.setItem(
-      "goalcast_show_extra_standings_stats",
-      String(showExtraStats)
+      "goalcast_expanded_standings_groups",
+      JSON.stringify(expandedStandingsGroups)
     );
-  }, [showExtraStats, showExtraStatsLoaded]);
+  }, [expandedStandingsGroups, expandedStandingsGroupsLoaded]);
 
-  const standingsTableWidthClass = showExtraStats
-    ? "min-w-[560px] sm:min-w-[760px]"
-    : "min-w-0";
-
-  const standingsGridClass = showExtraStats
-    ? "grid-cols-[2rem_5rem_repeat(8,minmax(2.25rem,1fr))] sm:grid-cols-[2rem_13rem_repeat(8,minmax(2.75rem,1fr))]"
-    : "grid-cols-[2rem_5rem_repeat(5,minmax(2rem,1fr))] sm:grid-cols-[2rem_13rem_repeat(5,minmax(2.75rem,1fr))]";
+  function toggleGroupExtraStats(groupKey) {
+    setExpandedStandingsGroups((current) => ({
+      ...current,
+      [groupKey]: !current[groupKey],
+    }));
+  }
 
   return (
     <main className="relative min-h-screen bg-black text-white p-4 sm:p-6 pb-20 sm:pb-14">
@@ -178,12 +181,33 @@ export default function Standings() {
         </p>
 
         <div className="space-y-6">
-          {standings.map((groupData) => (
-            <div key={groupData.group}>
+          {standings.map((groupData) => {
+            const groupExpanded = Boolean(expandedStandingsGroups[groupData.group]);
+
+            const standingsTableWidthClass = groupExpanded
+              ? "min-w-[560px] sm:min-w-[760px]"
+              : "min-w-0";
+
+            const standingsGridClass = groupExpanded
+              ? "grid-cols-[2rem_5rem_repeat(8,minmax(2.25rem,1fr))] sm:grid-cols-[2rem_13rem_repeat(8,minmax(2.75rem,1fr))]"
+              : "grid-cols-[2rem_5rem_repeat(5,minmax(2rem,1fr))] sm:grid-cols-[2rem_13rem_repeat(5,minmax(2.75rem,1fr))]";
+
+            return (
+              <div key={groupData.group}>
               <div className="mb-2 flex items-center justify-between gap-3">
-                <h3 className="text-base sm:text-lg font-semibold">
-                  Group {groupData.group}
-                </h3>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h3 className="text-base sm:text-lg font-semibold">
+                    Group {groupData.group}
+                  </h3>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleGroupExtraStats(groupData.group)}
+                    className="shrink-0 border border-gray-600 px-2 py-1 text-[10px] sm:text-xs text-gray-300 hover:bg-gray-800"
+                  >
+                    {groupExpanded ? "Hide" : "Expand"}
+                  </button>
+                </div>
 
                 <button
                   type="button"
@@ -197,25 +221,24 @@ export default function Standings() {
               <div className="overflow-x-auto">
                 <div className={`${standingsTableWidthClass} w-full border border-white`}>
                   <div
-                    className={`grid ${standingsGridClass} border-b border-white p-2 text-xs sm:text-sm font-bold`}
-                  >
-                    <span></span>
-                    <span>Team</span>
-                    <span className="text-center">MP</span>
-                    <span className="text-center">W</span>
-                    <span className="text-center">D</span>
-                    <span className="text-center">L</span>
+                  className={`grid ${standingsGridClass} border-b border-white p-2 text-xs sm:text-sm font-bold`}
+                >
+                  <span></span>
+                  <span>Team</span>
+                  <span className="text-center">MP</span>
+                  <span className="text-center">W</span>
+                  <span className="text-center">D</span>
+                  <span className="text-center">L</span>
+                  <span className="text-center">Pts</span>
 
-                    {showExtraStats && (
-                      <>
-                        <span className="text-center">GF</span>
-                        <span className="text-center">GA</span>
-                        <span className="text-center">GD</span>
-                      </>
-                    )}
-
-                    <span className="text-center">Pts</span>
-                  </div>
+                  {groupExpanded && (
+                    <>
+                      <span className="text-center">GF</span>
+                      <span className="text-center">GA</span>
+                      <span className="text-center">GD</span>
+                    </>
+                  )}
+                </div>
 
                   {groupData.teams.map((team) => (
                     <div
@@ -241,22 +264,22 @@ export default function Standings() {
                       <span className="text-center">{team.w}</span>
                       <span className="text-center">{team.d}</span>
                       <span className="text-center">{team.l}</span>
+                      <span className="text-center font-bold">{team.pts}</span>
 
-                      {showExtraStats && (
+                      {groupExpanded && (
                         <>
                           <span className="text-center">{team.gf}</span>
                           <span className="text-center">{team.ga}</span>
                           <span className="text-center">{team.gd}</span>
                         </>
                       )}
-
-                      <span className="text-center font-bold">{team.pts}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          ))}
+                </div>
+              );
+            })}
         </div>
       </section>
 
