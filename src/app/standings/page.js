@@ -194,7 +194,6 @@ export default function Standings() {
 
             return (
               <div key={groupData.group}>
-              <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <h3 className="text-base sm:text-lg font-semibold">
                     Group {groupData.group}
@@ -208,15 +207,6 @@ export default function Standings() {
                     {groupExpanded ? "Hide" : "Expand"}
                   </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowExtraStats((current) => !current)}
-                  className="shrink-0 border border-gray-600 px-2 py-1 text-[10px] sm:text-xs text-gray-300 hover:bg-gray-800"
-                >
-                  {showExtraStats ? "Hide" : "Expand"}
-                </button>
-              </div>
 
               <div className="overflow-x-auto">
                 <div className={`${standingsTableWidthClass} w-full border border-white`}>
