@@ -51,10 +51,7 @@ export default function TabBar() {
     <div className="fixed bottom-0 left-0 z-50">
       <div className="flex gap-0">
         {tabs.map((tab) => {
-          const active =
-            pathname === tab.href ||
-            (pathname === "/teams" &&
-              localStorage.getItem(tab.storageKey)?.startsWith("/teams"));
+          const active = pathname === tab.href;
 
           return (
             <Link
