@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { groups } from "@/data/wc2026Data";
+import Link from "next/link";
 
 // Lower number = higher manual ranking if teams are still tied
 const manualOrderOverrides = {
@@ -245,10 +246,13 @@ export default function Standings() {
                         />
                       </div>
 
-                      <div className="font-semibold truncate pr-2">
+                      <Link
+                        href={`/teams#${team.abbr}`}
+                        className="font-semibold truncate pr-2 hover:underline"
+                      >
                         <span className="hidden sm:inline">{team.name}</span>
                         <span className="sm:hidden">{team.abbr}</span>
-                      </div>
+                      </Link>
 
                       <span className="text-center">{team.mp}</span>
                       <span className="text-center">{team.w}</span>
