@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { matches } from "@/data/wc2026Data";
+import Link from "next/link";
 
 export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
@@ -304,7 +305,10 @@ export default function Schedule() {
         </div>
 
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <Link
+            href={`/teams#${match.home}`}
+            className="flex items-center gap-2 min-w-0 hover:underline"
+          >
             <Image
               src={`/flags/${match.home}.png`}
               alt={`${match.home} flag`}
@@ -313,7 +317,7 @@ export default function Schedule() {
               className="object-cover"
             />
             <span className="font-semibold truncate">{match.home}</span>
-          </div>
+          </Link>
 
           <div className="shrink-0 text-center min-w-[42px]">
             {match.homeScore !== null && match.awayScore !== null ? (
@@ -337,7 +341,10 @@ export default function Schedule() {
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2 min-w-0">
+          <Link
+            href={`/teams#${match.away}`}
+            className="flex items-center justify-end gap-2 min-w-0 hover:underline"
+          >
             <span className="font-semibold truncate">{match.away}</span>
             <Image
               src={`/flags/${match.away}.png`}
@@ -346,7 +353,7 @@ export default function Schedule() {
               height={20}
               className="object-cover"
             />
-          </div>
+          </Link>
         </div>
 
         <div className="mt-2 flex items-center justify-between">

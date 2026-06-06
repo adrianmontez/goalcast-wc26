@@ -236,7 +236,10 @@ export default function Standings() {
                       key={team.abbr}
                       className={`grid ${standingsGridClass} border-b border-gray-700 last:border-b-0 p-2 text-xs sm:text-sm items-center`}
                     >
-                      <div className="flex items-center">
+                      <Link
+                        href={`/teams#${team.abbr}`}
+                        className="flex items-center"
+                      >
                         <Image
                           src={`/flags/${team.abbr}.png`}
                           alt={`${team.name} flag`}
@@ -244,7 +247,7 @@ export default function Standings() {
                           height={16}
                           className="object-cover"
                         />
-                      </div>
+                      </Link>
 
                       <Link
                         href={`/teams#${team.abbr}`}
