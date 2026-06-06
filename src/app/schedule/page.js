@@ -236,6 +236,10 @@ export default function Schedule() {
     };
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("goalcast_last_schedule_view", "/schedule");
+  }, []);
+
   function dateAndTimeValue(match) {
     const dateValue = new Date(match.date).getTime();
     const timeValue = timeToMinutes(match.time);
@@ -306,7 +310,7 @@ export default function Schedule() {
 
         <div className="flex items-center justify-between gap-2">
           <Link
-            href={`/teams#${match.home}`}
+            href={`/teams?from=schedule#${match.home}`}
             className="flex items-center gap-2 min-w-0 hover:underline"
           >
             <Image
@@ -342,7 +346,7 @@ export default function Schedule() {
           </div>
 
           <Link
-            href={`/teams#${match.away}`}
+            href={`/teams?from=schedule#${match.away}`}
             className="flex items-center justify-end gap-2 min-w-0 hover:underline"
           >
             <span className="font-semibold truncate">{match.away}</span>

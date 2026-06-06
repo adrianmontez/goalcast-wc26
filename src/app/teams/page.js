@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { groups } from "@/data/wc2026Data";
 import { teamMeritsByName } from "@/data/teamMerits";
+import TabBar from "@/components/TabBar";
+import { useEffect } from "react";
 
 function getAllTeams() {
   return groups
@@ -42,7 +44,22 @@ function renderWorldCupStars(count) {
 
 export default function TeamsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const teams = getAllTeams();
+  
+
+    useEffect(() => {
+        const from = searchParams.get("from");
+        const currentTeamsUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+        if (from === "schedule") {
+            localStorage.setItem("goalcast_last_schedule_view", currentTeamsUrl);
+        }
+
+        if (from === "standings") {
+            localStorage.setItem("goalcast_last_standings_view", currentTeamsUrl);
+        }
+    }, [searchParams]);
 
   return (
     <main className="min-h-screen bg-black text-white p-4 sm:p-6 pb-20">
@@ -141,6 +158,7 @@ export default function TeamsPage() {
           );
         })}
       </section>
+      <TabBar />
     </main>
   );
 }

@@ -237,7 +237,7 @@ export default function Standings() {
                       className={`grid ${standingsGridClass} border-b border-gray-700 last:border-b-0 p-2 text-xs sm:text-sm items-center`}
                     >
                       <Link
-                        href={`/teams#${team.abbr}`}
+                        href={`/teams?from=standings#${team.abbr}`}
                         className="flex items-center"
                       >
                         <Image
@@ -250,7 +250,7 @@ export default function Standings() {
                       </Link>
 
                       <Link
-                        href={`/teams#${team.abbr}`}
+                        href={`/teams?from=standings#${team.abbr}`}
                         className="font-semibold truncate pr-2 hover:underline"
                       >
                         <span className="hidden sm:inline">{team.name}</span>
