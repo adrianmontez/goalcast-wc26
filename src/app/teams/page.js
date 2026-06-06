@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { groups } from "@/data/wc2026Data";
@@ -39,6 +41,7 @@ function renderWorldCupStars(count) {
 }
 
 export default function TeamsPage() {
+  const router = useRouter();
   const teams = getAllTeams();
 
   return (
@@ -54,12 +57,19 @@ export default function TeamsPage() {
           </p>
         </div>
 
-        <Link
-          href="/standings"
-          className="shrink-0 border border-white px-3 py-2 text-xs sm:text-sm font-semibold hover:bg-gray-800"
+        <button
+            type="button"
+            onClick={() => {
+                if (window.history.length > 1) {
+                    router.back();
+                } else {
+                    router.push("/standings");
+                }
+            }}
+            className="shrink-0 border border-white px-3 py-2 text-xs sm:text-sm font-semibold hover:bg-gray-800"
         >
-          Back
-        </Link>
+            Back
+        </button>
       </div>
 
       <section className="mb-6">
