@@ -42,6 +42,36 @@ function renderWorldCupStars(count) {
   );
 }
 
+function renderConfederationBadge(merits) {
+  const rank = Number(merits?.confederationRank || 0);
+
+  if (!merits?.confederation || rank === 0) {
+    return null;
+  }
+
+  const badgeClass =
+    rank === 1
+      ? "border-yellow-400 bg-yellow-500/20 text-yellow-300"
+      : rank === 2
+        ? "border-gray-300 bg-gray-400/20 text-gray-200"
+        : "border-amber-700 bg-amber-800/30 text-amber-300";
+
+  const label =
+    rank === 1
+      ? `${merits.confederation} Champion`
+      : rank === 2
+        ? `${merits.confederation} Runner-up`
+        : `${merits.confederation} 3rd Place`;
+
+  return (
+    <span
+      className={`rounded-full border px-2 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wide ${badgeClass}`}
+    >
+      {label}
+    </span>
+  );
+}
+
 export default function TeamsPage() {
   const router = useRouter();
   const teams = getAllTeams();
@@ -141,8 +171,9 @@ export default function TeamsPage() {
                   </p>
                 </div>
 
-                <div className="hidden sm:flex flex-1 justify-center">
-                  {renderWorldCupStars(merits?.worldCupWins)}
+                <div className="hidden sm:flex flex-1 items-center justify-center gap-3">
+                    {renderWorldCupStars(merits?.worldCupWins)}
+                    {renderConfederationBadge(merits)}
                 </div>
 
                 <div className="shrink-0 text-right">
@@ -156,8 +187,9 @@ export default function TeamsPage() {
                 </div>
               </div>
 
-              <div className="mt-3 flex sm:hidden">
+              <div className="mt-3 flex flex-wrap items-center gap-2 sm:hidden">
                 {renderWorldCupStars(merits?.worldCupWins)}
+                {renderConfederationBadge(merits)}
               </div>
             </article>
           );
