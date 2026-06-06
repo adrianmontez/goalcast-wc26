@@ -225,7 +225,7 @@ export const groups = [
         "abbr": "UZB"
       },
       {
-        "name": "Columbia",
+        "name": "Colombia",
         "abbr": "COL"
       }
     ]
@@ -470,7 +470,7 @@ export const teams = [
     "group": "K"
   },
   {
-    "name": "Columbia",
+    "name": "Colombia",
     "abbr": "COL",
     "group": "K"
   },
@@ -713,7 +713,7 @@ export const teamsByAbbr = {
     "group": "K"
   },
   "COL": {
-    "name": "Columbia",
+    "name": "Colombia",
     "abbr": "COL",
     "group": "K"
   },
@@ -1071,7 +1071,7 @@ export const matches = [
     "home": "UZB",
     "away": "COL",
     "homeName": "Uzbekistan",
-    "awayName": "Columbia",
+    "awayName": "Colombia",
     "status": "scheduled",
     "homeScore": null,
     "awayScore": null
@@ -1406,7 +1406,7 @@ export const matches = [
     "stadium": "Estadio Guadalajara",
     "home": "COL",
     "away": "COD",
-    "homeName": "Columbia",
+    "homeName": "Colombia",
     "awayName": "DR Congo",
     "status": "scheduled",
     "homeScore": null,
@@ -1728,7 +1728,7 @@ export const matches = [
     "stadium": "Miami Stadium",
     "home": "COL",
     "away": "POR",
-    "homeName": "Columbia",
+    "homeName": "Colombia",
     "awayName": "Portugal",
     "status": "scheduled",
     "homeScore": null,

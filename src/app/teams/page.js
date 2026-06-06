@@ -4,24 +4,22 @@ import { groups } from "@/data/wc2026Data";
 import { teamMeritsByName } from "@/data/teamMerits";
 
 function getAllTeams() {
-  return groups.flatMap((group) =>
-    group.teams.map((team) => ({
-      ...team,
-      group: group.group,
-      merits: teamMeritsByName[team.name] || null,
-    }))
-  );
+  return groups
+    .flatMap((group) =>
+      group.teams.map((team) => ({
+        ...team,
+        group: group.group,
+        merits: teamMeritsByName[team.name] || null,
+      }))
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function renderWorldCupStars(count) {
   const wins = Number(count || 0);
 
   if (wins <= 0) {
-    return (
-      <span className="text-xs text-gray-500">
-        No World Cup wins
-      </span>
-    );
+    return null;
   }
 
   return (
@@ -52,7 +50,7 @@ export default function TeamsPage() {
           </h1>
 
           <p className="mt-1 text-xs sm:text-sm text-gray-400">
-            View each team&apos;s FIFA ranking, World Cup wins, and tournament merits.
+            View each team&apos;s roster, FIFA ranking, and tournament merits.
           </p>
         </div>
 
@@ -108,7 +106,6 @@ export default function TeamsPage() {
 
                   <p className="text-xs text-gray-400">
                     {team.abbr} • Group {team.group}
-                    {merits?.confederation ? ` • ${merits.confederation}` : ""}
                   </p>
                 </div>
 
