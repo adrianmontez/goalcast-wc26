@@ -48,8 +48,8 @@ export default function TabBar() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 z-50">
-      <div className="flex gap-0">
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="grid grid-cols-3 w-full">
         {tabs.map((tab) => {
           const active = pathname === tab.href;
 
@@ -60,8 +60,8 @@ export default function TabBar() {
               onClick={(event) => handleTabClick(event, tab)}
               className={
                 active
-                  ? "bg-white px-3 py-1 text-black font-semibold border border-white"
-                  : "bg-black px-3 py-1 text-white font-semibold border border-white hover:bg-gray-800"
+                  ? "bg-white px-1 py-2 text-center text-[11px] sm:text-sm text-black font-semibold border border-white"
+                  : "bg-black px-1 py-2 text-center text-[11px] sm:text-sm text-white font-semibold border border-white hover:bg-gray-800"
               }
             >
               {tab.name}
