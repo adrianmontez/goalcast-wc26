@@ -76,6 +76,12 @@ export default function TeamsPage() {
   const router = useRouter();
   const teams = getAllTeams();
   
+  const alphabetLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+  const availableLetters = Array.from(
+    new Set(teams.map((team) => team.name[0]?.toUpperCase()))
+  ).filter((letter) => alphabetLetters.includes(letter));
+  
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -123,35 +129,53 @@ export default function TeamsPage() {
             Back
         </button>
       </div>
+      <nav
+        aria-label="Team alphabet navigation"
+        className="fixed right-1 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-0.5 rounded-full border border-gray-700 bg-black/80 px-1 py-2"
+      >
+        {alphabetLetters.map((letter) => {
+            const isAvailable = availableLetters.includes(letter);
 
-      <section className="mb-6">
-        <h2 className="mb-3 text-sm font-semibold text-gray-300">
-          Jump to team
-        </h2>
-
-        <div className="flex flex-wrap gap-2">
-          {teams.map((team) => (
-            <a
-              key={team.abbr}
-              href={`#${team.abbr}`}
-              className="border border-gray-700 px-2 py-1 text-xs font-semibold hover:bg-gray-800"
-            >
-              {team.abbr}
-            </a>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        {teams.map((team) => {
+            return isAvailable ? (
+              <a
+                key={letter}
+                href={`#letter-${letter}`}
+                className="flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white hover:bg-gray-700 sm:h-5 sm:w-5 sm:text-[10px]"
+              >
+                {letter}
+              </a>
+            ) : (
+              <span
+                key={letter}
+                className="flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-gray-700 sm:h-5 sm:w-5 sm:text-[10px]"
+              >
+                {letter}
+              </span>
+            );
+        })}
+      </nav>
+      <section className="space-y-3 pr-6 sm:pr-8">
+        {teams.map((team, index) => {
           const merits = team.merits;
+          const firstLetter = team.name[0].toUpperCase();
+          const previousFirstLetter =
+            index > 0 ? teams[index - 1].name[0].toUpperCase() : null;
+          const shouldAddLetterAnchor = firstLetter !== previousFirstLetter;
 
-          return (
-            <article
-              key={team.abbr}
-              id={team.abbr}
-              className="scroll-mt-6 border border-gray-700 p-3 sm:p-4"
-            >
+        return (
+          <div key={team.abbr} className="relative">
+            {shouldAddLetterAnchor && (
+              <span
+                id={`letter-${firstLetter}`}
+                className="absolute -top-4"
+                aria-hidden="true"
+              />
+            )};
+
+        <article
+          id={team.abbr}
+          className="scroll-mt-6 border border-gray-700 p-3 sm:p-4"
+        >
               <div className="flex items-center gap-3">
                 <Image
                   src={`/flags/${team.abbr}.png`}
@@ -192,6 +216,7 @@ export default function TeamsPage() {
                 {renderConfederationBadge(merits)}
               </div>
             </article>
+          </div>
           );
         })}
       </section>
