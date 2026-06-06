@@ -170,7 +170,7 @@ export default function TeamsPage() {
                 className="absolute -top-4"
                 aria-hidden="true"
               />
-            )};
+            )}
 
         <article
           id={team.abbr}
