@@ -1,4 +1,4 @@
-export const teamMetitsByName = {
+export const teamMeritsByName = {
     "Algeria": {
         confederation: "AFCON",
         confederationRank: 0,
