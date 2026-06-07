@@ -7,6 +7,7 @@ import { teamMeritsByName } from "@/data/teamMerits";
 import TabBar from "@/components/TabBar";
 import { useEffect, useState } from "react";
 import { teamRostersByName } from "@/data/teamRosters";
+import useSaveScrollPosition from "@/hooks/useSaveScrollPosition";
 
 function getAllTeams() {
   return groups
@@ -98,12 +99,13 @@ export default function TeamsPage() {
     new Set(teams.map((team) => team.name[0]?.toUpperCase()))
   ).filter((letter) => alphabetLetters.includes(letter));
   
+  useSaveScrollPosition("goalcast_teams_scroll_position");
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const from = params.get("from");
 
-        const currentTeamsUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        const currentTeamsUrl = `${window.location.pathname}${window.location.search}`;
 
         if (from === "schedule") {
             localStorage.setItem("goalcast_last_schedule_view", currentTeamsUrl);

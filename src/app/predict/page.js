@@ -7,11 +7,15 @@ import TabBar from "@/components/TabBar";
 import { groups } from "@/data/wc2026Data";
 import { knockoutSeeding } from "@/data/knockoutSeeding";
 import { thirdPlaceMapping } from "@/data/thirdPlaceMapping";
+import useSaveScrollPosition from "@/hooks/useSaveScrollPosition";
 
 export default function Predict() {
   const bracketImageRef = useRef(null);
   const [generatedBracketImage, setGeneratedBracketImage] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  useSaveScrollPosition("goalcast_predict_scroll_position");
+
 
   const exportImageDataUrlsRef = useRef({
     trophy: null,
@@ -64,6 +68,10 @@ export default function Predict() {
       showBracket ? "bracket" : "groups"
     );
   }, [showBracket]);
+
+  useEffect(() => {
+    localStorage.setItem("goalcast_last_predict_view", "/predict");
+  }, []);
 
   const getAdvancingThirdPlaceTeams = () => {
     const teams = [];
