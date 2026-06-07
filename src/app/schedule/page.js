@@ -280,25 +280,6 @@ export default function Schedule() {
     return safeDateValue + timeToMinutes(match.time) * 60 * 1000;
   }
 
-  const groupedMatches = scheduleMatches.reduce((acc, match) => {
-    if (!acc[match.group]) {
-      acc[match.group] = [];
-    }
-
-    acc[match.group].push(match);
-    return acc;
-  }, {});
-
-  Object.keys(groupedMatches).forEach((group) => {
-    groupedMatches[group].sort((a, b) => dateAndTimeValue(a) - dateAndTimeValue(b));
-  });
-
-  const groupKeys = Object.keys(groupedMatches).sort();
-
-  const matchesByDateTime = [...dateTimeMainMatches].sort(
-    (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
-  );
-
   function getDateOnlyValue(dateText) {
     const date = new Date(dateText);
 
@@ -342,6 +323,25 @@ export default function Schedule() {
     (match) => !isTodayMatch(match) && !isCompletedFromPreviousDay(match)
   );
   
+  const groupedMatches = scheduleMatches.reduce((acc, match) => {
+    if (!acc[match.group]) {
+      acc[match.group] = [];
+    }
+
+    acc[match.group].push(match);
+    return acc;
+  }, {});
+
+  Object.keys(groupedMatches).forEach((group) => {
+    groupedMatches[group].sort((a, b) => dateAndTimeValue(a) - dateAndTimeValue(b));
+  });
+
+  const groupKeys = Object.keys(groupedMatches).sort();
+
+  const matchesByDateTime = [...dateTimeMainMatches].sort(
+    (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
+  );
+
   function renderMatchCard(match) {
     return (
       <div
