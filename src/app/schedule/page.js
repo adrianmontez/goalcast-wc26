@@ -343,6 +343,10 @@ export default function Schedule() {
   );
 
   function renderMatchCard(match) {
+    const votingClosed =
+      match.status === "live" ||
+      match.status === "finished" ||
+      match.status === "postponed";
     return (
       <div
         key={match.id}
@@ -438,14 +442,20 @@ export default function Schedule() {
                 Who will win?
               </p>
 
+              {votingClosed && (
+                <p className="mb-2 text-[11px] text-gray-400">
+                  Voting closed once match starts.
+                </p>
+              )}
+
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleVote(match.id, match.home)}
-                  disabled={votingMatch === match.id}
+                  disabled={votingMatch === match.id || votingClosed}
                   className={
                     myVotes[match.id] === match.home
-                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   }
                 >
                   <Image
@@ -463,11 +473,11 @@ export default function Schedule() {
 
                 <button
                   onClick={() => handleVote(match.id, "DRAW")}
-                  disabled={votingMatch === match.id}
+                  disabled={votingMatch === match.id || votingClosed}
                   className={
                     myVotes[match.id] === "DRAW"
-                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   }
                 >
                   <span>Draw</span>
@@ -478,11 +488,11 @@ export default function Schedule() {
 
                 <button
                   onClick={() => handleVote(match.id, match.away)}
-                  disabled={votingMatch === match.id}
+                  disabled={votingMatch === match.id || votingClosed}
                   className={
                     myVotes[match.id] === match.away
-                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white"
-                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800"
+                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   }
                 >
                   <Image
