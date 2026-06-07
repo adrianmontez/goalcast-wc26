@@ -6,6 +6,7 @@ import TabBar from "@/components/TabBar";
 import { matches } from "@/data/wc2026Data";
 import Link from "next/link";
 
+
 export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
   const [openMatchesLoaded, setOpenMatchesLoaded] = useState(false);
@@ -18,6 +19,9 @@ export default function Schedule() {
   const [votes, setVotes] = useState({});
 
   const [showCompletedMatches, setShowCompletedMatches] = useState(false);
+
+  const [matchDetailsByFixture, setMatchDetailsByFixture] = useState({});
+  const [loadingDetailsByFixture, setLoadingDetailsByFixture] = useState({});
 
   const [myVotes, setMyVotes] = useState(() => {
     if (typeof window === "undefined") return {};
@@ -129,6 +133,35 @@ export default function Schedule() {
       ...currentOpenMatches,
       [matchId]: !currentOpenMatches[matchId],
     }));
+  }
+
+  function getMatchStatusLabel(match) {
+    const status = match.apiStatusShort;
+
+    if (status === "HT") return "HT";
+    if (status === "FT") return "FT";
+    if (status === "AET") return "AET";
+    if (status === "PEN") return "PEN";
+    if (status === "PST") return "Postponed";
+    if (status === "CANC") return "Cancelled";
+    if (status === "ABD") return "Abandoned";
+    if (status === "SUSP") return "Suspended";
+    if (status === "INT") return "Interrupted";
+
+    if (match.status === "live" && match.elapsed) {
+      return `${match.elapsed}'`;
+    }
+
+    return "";
+  }
+
+  function shouldShowPenaltySection(match) {
+    const penaltyScore = getPenaltyScore(match);
+
+    return (
+      match.apiStatusShort === "PEN" ||
+      Boolean(penaltyScore)
+    );
   }
 
   useEffect(() => {
@@ -273,6 +306,91 @@ export default function Schedule() {
     return hours * 60 + minutes;
   }
 
+  function shouldLoadMatchDetails(match) {
+    return (
+      Boolean(match.apiFixtureId) &&
+      (match.apiStatusShort === "PEN" ||
+        match.apiStatusShort === "AET" ||
+        match.apiStatusShort === "FT")
+    );
+  }
+
+  function getMatchDetails(match) {
+    if (!match.apiFixtureId) return null;
+    return matchDetailsByFixture[match.apiFixtureId] || null;
+  }
+
+  function getPenaltyScore(match) {
+    const details = getMatchDetails(match);
+    const penaltyScore = details?.fixture?.score?.penalty;
+
+    const homePenalty = penaltyScore?.home;
+    const awayPenalty = penaltyScore?.away;
+
+    if (homePenalty === null || homePenalty === undefined) return null;
+    if (awayPenalty === null || awayPenalty === undefined) return null;
+
+    return {
+      home: homePenalty,
+      away: awayPenalty,
+    };
+  }
+
+  function getPenaltyEvents(match) {
+    const details = getMatchDetails(match);
+    const events = details?.events || [];
+
+    return events.filter((event) => {
+      const type = String(event.type || "").toLowerCase();
+      const detail = String(event.detail || "").toLowerCase();
+      const comments = String(event.comments || "").toLowerCase();
+
+      return (
+        type.includes("penalty") ||
+        detail.includes("penalty") ||
+        detail.includes("shootout") ||
+        comments.includes("penalty") ||
+        comments.includes("shootout")
+      );
+    });
+  }
+
+  async function loadMatchDetails(match) {
+    if (!shouldLoadMatchDetails(match)) return;
+
+    const fixtureId = match.apiFixtureId;
+
+    if (loadingDetailsByFixture[fixtureId]) return;
+
+    setLoadingDetailsByFixture((current) => ({
+      ...current,
+      [fixtureId]: true,
+    }));
+
+    try {
+      const response = await fetch(`/api/live/match-details?fixture=${fixtureId}`);
+      const data = await response.json();
+
+      if (data.ok) {
+        setMatchDetailsByFixture((current) => ({
+          ...current,
+          [fixtureId]: {
+            fixture: data.fixture,
+            events: data.events || [],
+            updatedAt: data.updatedAt,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Could not load match details:", error);
+    } finally {
+      setLoadingDetailsByFixture((current) => ({
+        ...current,
+        [fixtureId]: false,
+      }));
+    }
+  }
+
   function dateAndTimeValue(match) {
     const dateValue = new Date(match.date).getTime();
     const safeDateValue = Number.isNaN(dateValue) ? 9999999999999 : dateValue;
@@ -389,18 +507,28 @@ export default function Schedule() {
                   {match.homeScore} - {match.awayScore}
                 </span>
 
-                {match.status === "live" && match.elapsed && (
-                  <p className="text-[10px] text-red-400">
-                    {match.elapsed}&apos;
+                {getPenaltyScore(match) && (
+                  <p className="text-[10px] font-semibold text-yellow-300">
+                    Pens {getPenaltyScore(match).home} - {getPenaltyScore(match).away}
                   </p>
                 )}
 
-                {match.status === "finished" && (
-                  <p className="text-[10px] text-gray-400">FT</p>
+                {getMatchStatusLabel(match) && (
+                  <p
+                    className={
+                      match.status === "live"
+                        ? "text-[10px] text-red-400"
+                        : "text-[10px] text-gray-400"
+                    }
+                  >
+                    {getMatchStatusLabel(match)}
+                  </p>
                 )}
               </>
             ) : (
-              <span className="text-xs text-gray-400">vs</span>
+              <span className="text-xs text-gray-400">
+                {getMatchStatusLabel(match) || "vs"}
+              </span>
             )}
           </div>
 
@@ -421,7 +549,13 @@ export default function Schedule() {
 
         <div className="mt-2 flex items-center justify-between">
           <button
-            onClick={() => toggleMatch(match.id)}
+            onClick={() => {
+              toggleMatch(match.id);
+
+              if (!openMatches[match.id]) {
+                loadMatchDetails(match);
+              }
+            }}
             className="text-xs text-gray-300 underline"
           >
             {openMatches[match.id] ? "Hide details" : "Show details"}
@@ -436,6 +570,56 @@ export default function Schedule() {
           <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
             <p>Time: {match.time}</p>
             <p>Stadium: {match.stadium}</p>
+
+            {shouldShowPenaltySection(match) && (
+              <div className="mt-3 border-t border-gray-700 pt-3">
+                <p className="mb-2 text-xs font-semibold text-white">
+                  Penalty Shootout
+                </p>
+
+                {loadingDetailsByFixture[match.apiFixtureId] ? (
+                  <p className="text-xs text-gray-500">Loading match details...</p>
+                ) : getPenaltyScore(match) ? (
+                  <div className="border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">
+                    <p className="font-bold text-yellow-300">
+                      {match.home}: {getPenaltyScore(match).home}
+                    </p>
+                    <p className="font-bold text-yellow-300">
+                      {match.away}: {getPenaltyScore(match).away}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    Penalty shootout details will appear here if the match reaches penalties.
+                  </p>
+                )}
+
+                {getPenaltyEvents(match).length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {getPenaltyEvents(match).map((event, index) => (
+                      <div
+                        key={`${match.apiFixtureId}-penalty-${index}`}
+                        className="grid grid-cols-[3rem_1fr] gap-2 border border-gray-800 p-2 text-xs"
+                      >
+                        <span className="text-gray-400">
+                          {event.time?.elapsed ?? ""}
+                          {event.time?.extra ? `+${event.time.extra}` : ""}&apos;
+                        </span>
+
+                        <div>
+                          <p className="font-semibold text-white">
+                            {event.team?.name || "Team"}
+                          </p>
+                          <p className="text-gray-400">
+                            {event.player?.name || "Player"} — {event.detail || event.type}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="mt-3 border-t border-gray-700 pt-3">
               <p className="mb-2 text-xs font-semibold text-white">
