@@ -5,14 +5,11 @@ import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { matches } from "@/data/wc2026Data";
 import Link from "next/link";
-import useSaveScrollPosition from "@/hooks/useSaveScrollPosition";
 
 export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
   const [openMatchesLoaded, setOpenMatchesLoaded] = useState(false);
   const [scheduleView, setScheduleView] = useState("datetime");
-
-  useSaveScrollPosition("goalcast_schedule_scroll_position");
   
   const [scheduleMatches, setScheduleMatches] = useState(matches);
   const [liveDataStatus, setLiveDataStatus] = useState("loading");

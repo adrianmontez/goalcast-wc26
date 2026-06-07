@@ -5,7 +5,6 @@ import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { groups } from "@/data/wc2026Data";
 import Link from "next/link";
-import useSaveScrollPosition from "@/hooks/useSaveScrollPosition";
 
 // Lower number = higher manual ranking if teams are still tied
 const manualOrderOverrides = {
@@ -77,8 +76,6 @@ export default function Standings() {
 
   const [expandedStandingsGroups, setExpandedStandingsGroups] = useState({});
   const [expandedStandingsGroupsLoaded, setExpandedStandingsGroupsLoaded] = useState(false);
-
-  useSaveScrollPosition("goalcast_standings_scroll_position");
 
   useEffect(() => {
     let cancelled = false;
