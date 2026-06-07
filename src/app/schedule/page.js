@@ -309,15 +309,39 @@ export default function Schedule() {
   function shouldLoadMatchDetails(match) {
     return (
       Boolean(match.apiFixtureId) &&
-      (match.apiStatusShort === "PEN" ||
-        match.apiStatusShort === "AET" ||
-        match.apiStatusShort === "FT")
+      (match.status === "live" || match.status === "finished")
     );
   }
 
   function getMatchDetails(match) {
     if (!match.apiFixtureId) return null;
     return matchDetailsByFixture[match.apiFixtureId] || null;
+  }
+
+  function getGoalEvents(match) {
+    const details = getMatchDetails(match);
+    const events = details?.events || [];
+
+    return events.filter((event) => {
+      const type = String(event.type || "").toLowerCase();
+      const detail = String(event.detail || "").toLowerCase();
+
+      return (
+        type === "goal" ||
+        detail.includes("normal goal") ||
+        detail.includes("own goal") ||
+        detail.includes("penalty")
+      );
+    });
+  }
+
+  function formatGoalMinute(event) {
+    const elapsed = event.time?.elapsed;
+    const extra = event.time?.extra;
+
+    if (!elapsed) return "";
+
+    return extra ? `${elapsed}+${extra}'` : `${elapsed}'`;
   }
 
   function getPenaltyScore(match) {
@@ -570,6 +594,47 @@ export default function Schedule() {
           <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
             <p>Time: {match.time}</p>
             <p>Stadium: {match.stadium}</p>
+
+            {shouldLoadMatchDetails(match) && (
+              <div className="mt-3 border-t border-gray-700 pt-3">
+                <p className="mb-2 text-xs font-semibold text-white">
+                  Scorers
+                </p>
+
+                {loadingDetailsByFixture[match.apiFixtureId] ? (
+                  <p className="text-xs text-gray-500">Loading scorers...</p>
+                ) : getGoalEvents(match).length > 0 ? (
+                  <div className="space-y-2">
+                    {getGoalEvents(match).map((event, index) => (
+                      <div
+                        key={`${match.apiFixtureId}-goal-${index}`}
+                        className="grid grid-cols-[3rem_1fr] gap-2 border border-gray-800 p-2 text-xs"
+                      >
+                        <span className="text-gray-400">
+                          {formatGoalMinute(event)}
+                        </span>
+
+                        <div>
+                          <p className="font-semibold text-white">
+                            {event.player?.name || "Unknown scorer"}
+                          </p>
+
+                          <p className="text-gray-400">
+                            {event.team?.name || "Team"}
+                            {event.detail ? ` • ${event.detail}` : ""}
+                            {event.assist?.name ? ` • Assist: ${event.assist.name}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    No scorers yet.
+                  </p>
+                )}
+              </div>
+            )}
 
             {shouldShowPenaltySection(match) && (
               <div className="mt-3 border-t border-gray-700 pt-3">
