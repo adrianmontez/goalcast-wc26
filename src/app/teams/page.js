@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { groups } from "@/data/wc2026Data";
 import { teamMeritsByName } from "@/data/teamMerits";
 import TabBar from "@/components/TabBar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { teamRostersByName } from "@/data/teamRosters";
 
 function getAllTeams() {
   return groups
@@ -14,6 +15,8 @@ function getAllTeams() {
         ...team,
         group: group.group,
         merits: teamMeritsByName[team.name] || null,
+        roster: teamRostersByName[team.name]?.players || [],
+        manager: teamRostersByName[team.name]?.manager || null,
       }))
     )
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -75,6 +78,7 @@ function renderConfederationBadge(merits) {
 export default function TeamsPage() {
   const router = useRouter();
   const teams = getAllTeams();
+  const [openTeam, setOpenTeam] = useState(null);
   
   const alphabetLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -101,6 +105,10 @@ export default function TeamsPage() {
             localStorage.setItem("goalcast_last_predict_view", currentTeamsUrl);
         }
     }, []);
+
+  function toggleTeam(teamAbbr) {
+    setOpenTeam((current) => (current === teamAbbr ? null : teamAbbr));
+  }
 
   return (
     <main className="min-h-screen bg-black text-white p-4 sm:p-6 pb-20">
@@ -172,10 +180,15 @@ export default function TeamsPage() {
               />
             )}
 
-        <article
-          id={team.abbr}
-          className="scroll-mt-6 border border-gray-700 p-3 sm:p-4"
-        >
+            <article
+                id={team.abbr}
+                className="scroll-mt-6 border border-gray-700"
+            >
+              <button
+                type="button"
+                onClick={() => toggleTeam(team.abbr)}
+                className="w-full p-3 text-left sm:p-4"
+              >
               <div className="flex items-center gap-3">
                 <Image
                   src={`/flags/${team.abbr}.png`}
@@ -208,6 +221,10 @@ export default function TeamsPage() {
                   <p className="text-lg sm:text-xl font-bold">
                     {merits?.fifaRank ?? "N/A"}
                   </p>
+
+                  <p className="text-[10px] text-gray-500">
+                    {openTeam === team.abbr ? "Hide roster" : "View roster"}
+                  </p>
                 </div>
               </div>
 
@@ -215,6 +232,57 @@ export default function TeamsPage() {
                 {renderWorldCupStars(merits?.worldCupWins)}
                 {renderConfederationBadge(merits)}
               </div>
+              </button>
+              {openTeam === team.abbr && (
+                <div className="border-t border-gray-700 p-3 sm:p-4">
+                    <h3 className="mb-3 text-sm font-semibold text-gray-300">
+                      Roster
+                    </h3>
+
+                    {team.roster.length > 0 ? (
+                        <div className="space-y-2">
+                          {team.roster.map((player) => (
+                            <div
+                                key={`${team.abbr}-${player.name}`}
+                                className="grid grid-cols-[1fr_auto] gap-3 border border-gray-800 p-2 text-xs sm:text-sm"
+                            >
+                                <div>
+                                    <p className="font-semibold text-white">{player.name}</p>
+                                    <p className="text-gray-400">{player.position}</p>
+                                </div>
+
+                                <p className="text-right text-gray-400">
+                                    {player.club}
+                                </p>
+                            </div>
+                          ))}
+                        </div>
+                    ) : (
+                        <p className="text-xs text-gray-500">
+                            Roster will be added later.
+                        </p>
+                    )}
+
+                    {team.manager && (
+                      <div className="mt-3 border-t border-gray-700 pt-3">
+                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                          Manager
+                        </p>
+
+                        <div className="grid grid-cols-[1fr_auto] gap-3 border border-gray-800 p-2 text-xs sm:text-sm">
+                          <div>
+                            <p className="font-semibold text-white">{team.manager.name}</p>
+                            <p className="text-gray-400">Manager</p>
+                          </div>
+
+                          <p className="text-right text-gray-400">
+                            {team.manager.club}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                </div>
+              )}
             </article>
           </div>
           );
