@@ -17,6 +17,8 @@ export default function Schedule() {
 
   const [votes, setVotes] = useState({});
 
+  const [showCompletedMatches, setShowCompletedMatches] = useState(false);
+
   const [myVotes, setMyVotes] = useState(() => {
     if (typeof window === "undefined") return {};
 
@@ -279,7 +281,10 @@ export default function Schedule() {
   }
 
   const groupedMatches = scheduleMatches.reduce((acc, match) => {
-    if (!acc[match.group]) acc[match.group] = [];
+    if (!acc[match.group]) {
+      acc[match.group] = [];
+    }
+
     acc[match.group].push(match);
     return acc;
   }, {});
@@ -290,17 +295,67 @@ export default function Schedule() {
 
   const groupKeys = Object.keys(groupedMatches).sort();
 
-  const matchesByDateTime = [...scheduleMatches].sort(
+  const matchesByDateTime = [...dateTimeMainMatches].sort(
     (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
   );
 
+  function getDateOnlyValue(dateText) {
+    const date = new Date(dateText);
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  }
+
+  function getTodayDateOnlyValue() {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  }
+
+  function isTodayMatch(match) {
+    const matchDateValue = getDateOnlyValue(match.apiDate || match.date);
+    const todayValue = getTodayDateOnlyValue();
+
+    return matchDateValue === todayValue;
+  }
+
+  function isCompletedFromPreviousDay(match) {
+    if (match.status !== "finished") return false;
+
+    const matchDateValue = getDateOnlyValue(match.apiDate || match.date);
+    const todayValue = getTodayDateOnlyValue();
+
+    if (matchDateValue === null) return false;
+
+    return matchDateValue < todayValue;
+  }
+
+  const todayMatches = scheduleMatches
+    .filter((match) => isTodayMatch(match))
+    .sort((a, b) => dateAndTimeValue(a) - dateAndTimeValue(b));
+
+  const completedMatches = scheduleMatches
+    .filter((match) => isCompletedFromPreviousDay(match))
+    .sort((a, b) => dateAndTimeValue(b) - dateAndTimeValue(a));
+
+  const dateTimeMainMatches = scheduleMatches.filter(
+    (match) => !isTodayMatch(match) && !isCompletedFromPreviousDay(match)
+  );
+  
   function renderMatchCard(match) {
     return (
-      <div key={match.id} className="relative border border-gray-700 p-3">
+      <div
+        key={match.id}
+        className={
+          match.status === "live"
+            ? "relative border border-red-500 bg-red-500/10 p-3 shadow-[0_0_14px_rgba(239,68,68,0.25)]"
+            : "relative border border-gray-700 p-3"
+        }
+      >
         {match.status === "live" && (
           <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-red-400">
             <span className="h-2 w-2 rounded-full bg-red-500"></span>
-            <span>•LIVE</span>
+            <span>LIVE</span>
           </div>
         )}
 
@@ -495,6 +550,44 @@ export default function Schedule() {
           View by Group
         </button>
       </div>
+      
+      {todayMatches.length > 0 && (
+        <section className="mb-8">
+          <div className="mb-3 border-b border-white pb-2">
+            <h2 className="text-lg sm:text-xl font-semibold">
+              Today&apos;s Matches
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+            {todayMatches.map((match) => renderMatchCard(match))}
+          </div>
+        </section>
+      )}
+
+      {completedMatches.length > 0 && (
+        <section className="mb-8">
+          <button
+            type="button"
+            onClick={() => setShowCompletedMatches((current) => !current)}
+            className="mb-3 flex w-full items-center justify-between border-b border-white pb-2 text-left"
+          >
+            <h2 className="text-lg sm:text-xl font-semibold">
+              Completed Matches
+            </h2>
+
+            <span className="text-xs text-gray-300">
+              {showCompletedMatches ? "Hide" : "Show"} ({completedMatches.length})
+            </span>
+          </button>
+
+          {showCompletedMatches && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+              {completedMatches.map((match) => renderMatchCard(match))}
+            </div>
+          )}
+        </section>
+      )}
 
       {scheduleView === "group" ? (
   <     div className="space-y-8">
