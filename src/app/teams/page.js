@@ -319,22 +319,19 @@ export default function TeamsPage() {
                     )}
 
                     {team.manager && (
-                      <div className="mt-3 border-t border-gray-700 pt-3">
-                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-gray-500">
-                          Manager
-                        </p>
+                        <div className="mt-3 border-t border-gray-700 pt-3">
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                              Manager
+                            </p>
 
-                        <div className="grid grid-cols-[1fr_auto] gap-3 border border-gray-800 p-2 text-xs sm:text-sm">
-                          <div>
+                            <div className="grid grid-cols-[1fr_auto] gap-3 border border-gray-800 p-2 text-xs sm:text-sm">
                             <p className="font-semibold text-white">{team.manager.name}</p>
-                            <p className="text-gray-400">Manager</p>
-                          </div>
 
-                          <p className="text-right text-gray-400">
-                            {team.manager.club}
-                          </p>
+                            <p className="text-right text-gray-400">
+                                {team.manager.club}
+                            </p>
+                            </div>
                         </div>
-                      </div>
                     )}
                 </div>
               )}
