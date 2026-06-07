@@ -75,10 +75,22 @@ function renderConfederationBadge(merits) {
   );
 }
 
+function groupPlayersByPosition(players) {
+  const positionOrder = ["Goalkeeper", "Defender", "Midfielder", "Forward"];
+
+  return positionOrder
+    .map((position) => ({
+      position,
+      players: players.filter((player) => player.position === position),
+    }))
+    .filter((group) => group.players.length > 0);
+}
+
 export default function TeamsPage() {
   const router = useRouter();
   const teams = getAllTeams();
-  const [openTeam, setOpenTeam] = useState(null);
+  const [openTeams, setOpenTeams] = useState({});
+  const [openTeamsLoaded, setOpenTeamsLoaded] = useState(false);
   
   const alphabetLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -106,9 +118,45 @@ export default function TeamsPage() {
         }
     }, []);
 
-  function toggleTeam(teamAbbr) {
-    setOpenTeam((current) => (current === teamAbbr ? null : teamAbbr));
-  }
+    useEffect(() => {
+        let cancelled = false;
+
+        Promise.resolve().then(() => {
+            const saved = localStorage.getItem("goalcast_open_team_rosters");
+
+            if (cancelled) return;
+
+            if (saved) {
+                try {
+                    setOpenTeams(JSON.parse(saved));
+                } catch {
+                    setOpenTeams({});
+                }
+            }
+
+            setOpenTeamsLoaded(true);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!openTeamsLoaded) return;
+
+        localStorage.setItem(
+            "goalcast_open_team_rosters",
+            JSON.stringify(openTeams)
+        );
+    }, [openTeams, openTeamsLoaded]);
+
+    function toggleTeam(teamAbbr) {
+      setOpenTeams((current) => ({
+        ...current,
+        [teamAbbr]: !current[teamAbbr],
+      }));
+    }
 
   return (
     <main className="min-h-screen bg-black text-white p-4 sm:p-6 pb-20">
@@ -223,7 +271,7 @@ export default function TeamsPage() {
                   </p>
 
                   <p className="text-[10px] text-gray-500">
-                    {openTeam === team.abbr ? "Hide roster" : "View roster"}
+                    {openTeams[team.abbr] ? "Hide roster" : "View roster"}
                   </p>
                 </div>
               </div>
@@ -233,31 +281,38 @@ export default function TeamsPage() {
                 {renderConfederationBadge(merits)}
               </div>
               </button>
-              {openTeam === team.abbr && (
+              {openTeams[team.abbr] && (
                 <div className="border-t border-gray-700 p-3 sm:p-4">
                     <h3 className="mb-3 text-sm font-semibold text-gray-300">
                       Roster
                     </h3>
 
                     {team.roster.length > 0 ? (
-                        <div className="space-y-2">
-                          {team.roster.map((player) => (
-                            <div
-                                key={`${team.abbr}-${player.name}`}
-                                className="grid grid-cols-[1fr_auto] gap-3 border border-gray-800 p-2 text-xs sm:text-sm"
-                            >
-                                <div>
-                                    <p className="font-semibold text-white">{player.name}</p>
-                                    <p className="text-gray-400">{player.position}</p>
-                                </div>
+                        <div className="space-y-4">
+                            {groupPlayersByPosition(team.roster).map((positionGroup) => (
+                            <div key={`${team.abbr}-${positionGroup.position}`}>
+                                <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                                {positionGroup.position}s
+                                </h4>
 
-                                <p className="text-right text-gray-400">
-                                    {player.club}
-                                </p>
+                                <div className="space-y-2">
+                                {positionGroup.players.map((player) => (
+                                    <div
+                                    key={`${team.abbr}-${player.name}`}
+                                    className="grid grid-cols-[1fr_auto] gap-3 border border-gray-800 p-2 text-xs sm:text-sm"
+                                    >
+                                    <p className="font-semibold text-white">{player.name}</p>
+
+                                    <p className="text-right text-gray-400">
+                                        {player.club}
+                                    </p>
+                                    </div>
+                                ))}
+                                </div>
                             </div>
-                          ))}
+                            ))}
                         </div>
-                    ) : (
+                        ) : (
                         <p className="text-xs text-gray-500">
                             Roster will be added later.
                         </p>
