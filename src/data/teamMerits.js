@@ -263,7 +263,7 @@ export const teamMeritsByName = {
         fifaRank: 45,
         worldCupWins: 0,
     },
-    "Turkey": {
+    "Turkiye": {
         confederation: "EUROS",
         confederationRank: 0,
         fifaRank: 22,
