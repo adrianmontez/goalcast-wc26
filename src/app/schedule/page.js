@@ -3,14 +3,18 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import TabBar from "@/components/TabBar";
-import { matches } from "@/data/wc2026Data";
+import { groups, matches } from "@/data/wc2026Data";
 import Link from "next/link";
 
 
 export default function Schedule() {
   const [openMatches, setOpenMatches] = useState({});
   const [openMatchesLoaded, setOpenMatchesLoaded] = useState(false);
-  const [scheduleView, setScheduleView] = useState("datetime");
+  const [scheduleView, setScheduleView] = useState(() => {
+    if (typeof window === "undefined") return "datetime";
+
+    return window.localStorage.getItem("goalcast_schedule_view") || "datetime";
+  });
   
   const [scheduleMatches, setScheduleMatches] = useState(matches);
   const [liveDataStatus, setLiveDataStatus] = useState("loading");
@@ -22,6 +26,8 @@ export default function Schedule() {
 
   const [matchDetailsByFixture, setMatchDetailsByFixture] = useState({});
   const [loadingDetailsByFixture, setLoadingDetailsByFixture] = useState({});
+
+  const [openScheduleGroups, setOpenScheduleGroups] = useState({});
 
   const [myVotes, setMyVotes] = useState(() => {
     if (typeof window === "undefined") return {};
@@ -162,6 +168,29 @@ export default function Schedule() {
       match.apiStatusShort === "PEN" ||
       Boolean(penaltyScore)
     );
+  }
+
+  function changeScheduleView(view) {
+    setScheduleView(view);
+
+    try {
+      window.localStorage.setItem("goalcast_schedule_view", view);
+    } catch (error) {
+      console.error("Could not save schedule view:", error);
+    }
+  }
+
+  function toggleScheduleGroup(group) {
+    setOpenScheduleGroups((current) => ({
+      ...current,
+      [group]: current[group] === false ? true : false,
+    }));
+  }
+
+  function getTeamsForGroup(groupLetter) {
+    const groupData = groups.find((group) => group.group === groupLetter);
+
+    return groupData?.teams || [];
   }
 
   useEffect(() => {
@@ -787,7 +816,7 @@ export default function Schedule() {
       <div className="mb-6 flex w-full sm:w-fit border border-white text-xs sm:text-sm">
         <button
           type="button"
-          onClick={() => setScheduleView("datetime")}
+          onClick={() => changeScheduleView("datetime")}
           className={
             scheduleView === "datetime"
               ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
@@ -799,7 +828,7 @@ export default function Schedule() {
 
         <button
           type="button"
-          onClick={() => setScheduleView("group")}
+          onClick={() => changeScheduleView("group")}
           className={
             scheduleView === "group"
               ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
@@ -873,15 +902,51 @@ export default function Schedule() {
               id={`group-${group}`}
               className="scroll-mt-6 space-y-3"
             >
-              <div className="pb-2 border-b border-white">
+              <button
+                type="button"
+                onClick={() => toggleScheduleGroup(group)}
+                className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-white pb-2 text-left"
+              >
                 <h2 className="text-lg sm:text-xl font-semibold">
-                  {groupLabel(group)}
+                  Group {group}
                 </h2>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
-                {groupedMatches[group].map((match) => renderMatchCard(match))}
-              </div>
+                <div className="flex min-w-0 justify-center">
+                  {openScheduleGroups[group] === false && (
+                    <div className="flex items-center justify-center gap-1 overflow-hidden">
+                      {getTeamsForGroup(group).map((team) => (
+                        <div
+                          key={`${group}-${team.abbr}`}
+                          className="flex items-center gap-1"
+                          title={team.name}
+                        >
+                          <Image
+                            src={`/flags/${team.abbr}.png`}
+                            alt={`${team.name} flag`}
+                            width={18}
+                            height={12}
+                            className="object-cover"
+                          />
+
+                          <span className="hidden text-[10px] font-semibold text-gray-400 sm:inline">
+                            {team.abbr}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <span className="text-xs text-gray-300">
+                  {openScheduleGroups[group] === false ? "Show" : "Hide"}
+                </span>
+              </button>
+
+              {openScheduleGroups[group] !== false && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+                  {groupedMatches[group].map((match) => renderMatchCard(match))}
+                </div>
+              )}
             </section>
           ))}
         </div>
