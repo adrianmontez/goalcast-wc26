@@ -849,9 +849,30 @@ export default function Schedule() {
       )}
 
       {scheduleView === "group" ? (
-  <     div className="space-y-8">
+        <div className="space-y-8">
+          <nav
+            aria-label="Group navigation"
+            className="flex justify-center overflow-x-auto"
+          >
+            <div className="flex w-max items-center gap-0.5 rounded-full border border-gray-700 bg-black/80 px-2 py-1">
+              {groupKeys.map((group) => (
+                <a
+                  key={group}
+                  href={`#group-${group}`}
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white hover:bg-gray-700"
+                >
+                  {group}
+                </a>
+              ))}
+            </div>
+          </nav>
+
           {groupKeys.map((group) => (
-            <section key={group} className="space-y-3">
+            <section
+              key={group}
+              id={`group-${group}`}
+              className="scroll-mt-6 space-y-3"
+            >
               <div className="pb-2 border-b border-white">
                 <h2 className="text-lg sm:text-xl font-semibold">
                   {groupLabel(group)}
