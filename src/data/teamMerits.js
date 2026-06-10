@@ -2,13 +2,13 @@ export const teamMeritsByName = {
     "Algeria": {
         confederation: "AFCON",
         confederationRank: 0,
-        fifaRank: 29,
+        fifaRank: 28,
         worldCupWins: 0,
     },
     "Argentina": {
         confederation: "COPA",
         confederationRank: 1,
-        fifaRank: 3,
+        fifaRank: 1,
         worldCupWins: 3,
     },
     "Australia": {
@@ -20,7 +20,7 @@ export const teamMeritsByName = {
     "Austria": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 23,
+        fifaRank: 24,
         worldCupWins: 0,
     },
     "Belgium": {
@@ -32,7 +32,7 @@ export const teamMeritsByName = {
     "Bosnia and Herzegovina": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 65,
+        fifaRank: 64,
         worldCupWins: 0,
     },
     "Brazil": {
@@ -50,7 +50,7 @@ export const teamMeritsByName = {
     "Cape Verde": {
         confederation: "AFCON",
         confederationRank: 0,
-        fifaRank: 68,
+        fifaRank: 67,
         worldCupWins: 0,
     },
     "Colombia": {
@@ -62,7 +62,7 @@ export const teamMeritsByName = {
     "Cote d'Ivoire": {
         confederation: "AFCON",
         confederationRank: 0,
-        fifaRank: 34,
+        fifaRank: 33,
         worldCupWins: 0,
     },
     "Croatia": {
@@ -80,7 +80,7 @@ export const teamMeritsByName = {
     "Czechia": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 41,
+        fifaRank: 40,
         worldCupWins: 0,
     },
     "DR Congo": {
@@ -92,13 +92,13 @@ export const teamMeritsByName = {
     "Ecuador": {
         confederation: "COPA",
         confederationRank: 0,
-        fifaRank: 24,
+        fifaRank: 23,
         worldCupWins: 0,
     },
     "Egypt": {
         confederation: "AFCON",
         confederationRank: 0,
-        fifaRank: 28,
+        fifaRank: 29,
         worldCupWins: 0,
     },
     "England": {
@@ -110,7 +110,7 @@ export const teamMeritsByName = {
     "France": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 1,
+        fifaRank: 3,
         worldCupWins: 2,
     },
     "Germany": {
@@ -134,7 +134,7 @@ export const teamMeritsByName = {
     "Iran": {
         confederation: "AFC",
         confederationRank: 0,
-        fifaRank: 21,
+        fifaRank: 20,
         worldCupWins: 0,
     },
     "Iraq": {
@@ -158,19 +158,19 @@ export const teamMeritsByName = {
     "Mexico": {
         confederation: "CONCACAF",
         confederationRank: 1,
-        fifaRank: 15,
+        fifaRank: 14,
         worldCupWins: 0,
     },
     "Morocco": {
         confederation: "AFCON",
         confederationRank: 1,
-        fifaRank: 8,
+        fifaRank: 7,
         worldCupWins: 0,
     },
     "Netherlands": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 7,
+        fifaRank: 8,
         worldCupWins: 0,
     },
     "New Zealand": {
@@ -188,13 +188,13 @@ export const teamMeritsByName = {
     "Panama": {
         confederation: "CONCACAF",
         confederationRank: 0,
-        fifaRank: 33,
+        fifaRank: 34,
         worldCupWins: 0,
     },
     "Paraguay": {
         confederation: "COPA",
         confederationRank: 0,
-        fifaRank: 40,
+        fifaRank: 41,
         worldCupWins: 0,
     },
     "Portugal": {
@@ -206,7 +206,7 @@ export const teamMeritsByName = {
     "Qatar": {
         confederation: "AFC",
         confederationRank: 1,
-        fifaRank: 55,
+        fifaRank: 56,
         worldCupWins: 0,
     },
     "Saudi Arabia": {
@@ -218,13 +218,13 @@ export const teamMeritsByName = {
     "Scotland": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 43,
+        fifaRank: 42,
         worldCupWins: 0,
     },
     "Senegal": {
         confederation: "AFCON",
         confederationRank: 2,
-        fifaRank: 14,
+        fifaRank: 15,
         worldCupWins: 0,
     },
     "South Africa": {
@@ -272,13 +272,13 @@ export const teamMeritsByName = {
     "Uruguay": {
         confederation: "COPA",
         confederationRank: 3,
-        fifaRank: 17,
+        fifaRank: 16,
         worldCupWins: 4,
     },
     "United States": {
         confederation: "CONCACAF",
         confederationRank: 2,
-        fifaRank: 16,
+        fifaRank: 17,
         worldCupWins: 0,
     },
     "Uzbekistan": {
