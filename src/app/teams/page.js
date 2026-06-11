@@ -75,6 +75,38 @@ function renderConfederationBadge(merits) {
   );
 }
 
+function renderDebutBadge(merits) {
+  if (Number(merits?.debut || 0) !== 1) return null;
+
+  return (
+    <span className="border border-orange-400 bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-300">
+      Debut
+    </span>
+  );
+}
+
+function renderHostBadge(merits) {
+  const hostValue = Number(merits?.host || 0);
+
+  if (hostValue === 0) return null;
+
+  const hostStyles = {
+    1: "border-red-400 bg-red-500/20 text-red-300",
+    2: "border-green-400 bg-green-500/20 text-green-300",
+    3: "border-blue-400 bg-blue-500/20 text-blue-300",
+  };
+
+  return (
+    <span
+      className={`border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+        hostStyles[hostValue] || "border-gray-400 bg-gray-500/20 text-gray-300"
+      }`}
+    >
+      Host
+    </span>
+  );
+}
+
 function groupPlayersByPosition(players) {
   const positionOrder = ["Goalkeeper", "Defender", "Midfielder", "Forward"];
 
@@ -255,8 +287,10 @@ export default function TeamsPage() {
                   </p>
                 </div>
 
-                <div className="hidden sm:flex flex-1 items-center justify-center gap-3">
+                <div className="hidden sm:flex flex-1 items-center justify-center gap-2">
                     {renderWorldCupStars(merits?.worldCupWins)}
+                    {renderHostBadge(merits)}
+                    {renderDebutBadge(merits)}
                     {renderConfederationBadge(merits)}
                 </div>
 
@@ -277,6 +311,8 @@ export default function TeamsPage() {
 
               <div className="mt-3 flex flex-wrap items-center gap-2 sm:hidden">
                 {renderWorldCupStars(merits?.worldCupWins)}
+                {renderHostBadge(merits)}
+                {renderDebutBadge(merits)}
                 {renderConfederationBadge(merits)}
               </div>
               </button>
