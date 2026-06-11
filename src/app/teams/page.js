@@ -79,7 +79,7 @@ function renderDebutBadge(merits) {
   if (Number(merits?.debut || 0) !== 1) return null;
 
   return (
-    <span className="rounded-full border border-orange-400 bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-300">
+    <span className="rounded-full border border-purple-400 bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-purple-300">
       Debut
     </span>
   );
