@@ -248,26 +248,6 @@ export default function Schedule() {
     localStorage.setItem("goalcast_my_votes", JSON.stringify(myVotes));
   }, [myVotes]);
 
-  function timeToMinutes(time) {
-    if (!time || time === "TBD") return 9999;
-
-    const [timePart, period] = time.split(" ");
-    const [hourText, minuteText] = timePart.split(":");
-
-    let hours = Number(hourText);
-    const minutes = Number(minuteText);
-
-    if (period === "PM" && hours !== 12) {
-      hours += 12;
-    }
-
-    if (period === "AM" && hours === 12) {
-      hours = 0;
-    }
-
-    return hours * 60 + minutes;
-  }
-
   useEffect(() => {
     let cancelled = false;
 
@@ -364,13 +344,6 @@ export default function Schedule() {
   useEffect(() => {
     localStorage.setItem("goalcast_last_schedule_view", "/schedule");
   }, []);
-
-  function dateAndTimeValue(match) {
-    const dateValue = new Date(match.date).getTime();
-    const timeValue = timeToMinutes(match.time);
-
-    return dateValue + timeValue * 60 * 1000;
-  }
 
   function groupLabel(group) {
     return String(group).startsWith("Group") ? group : `Group ${group}`;
@@ -913,11 +886,11 @@ export default function Schedule() {
       <h1 className="text-2xl sm:text-3xl font-bold mb-2">Match Schedule</h1>
 
       <p className="mb-2 text-xs text-gray-400">
-        {liveDataStatus === "live"
+        {liveDataStatus === "connected"
           ? `Live data connected${liveUpdatedAt ? ` • Updated ${new Date(liveUpdatedAt).toLocaleTimeString()}` : ""}`
           : liveDataStatus === "loading"
             ? "Loading live data..."
-            : "Using saved schedule data"}
+            : "Using saved schedule data."}
       </p>
 
       <div className="mb-6 flex w-full sm:w-fit border border-white text-xs sm:text-sm">
