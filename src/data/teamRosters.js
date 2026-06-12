@@ -444,7 +444,7 @@ export const teamRostersByName = {
     "Czechia": {
         manager: { name: "Miroslav Koubek", position: "Manager" },
         players: [
-            { name: "Matej Kovar", position: "Goalkeeper", club: "Braga" },
+            { name: "Matej Kovar", position: "Goalkeeper", club: "PSV Eindhoven" },
             { name: "Jindrich Stanek", position: "Goalkeeper", club: "Sigma Olomouc" },
             { name: "Lukas Hornicek", position: "Goalkeeper", club: "Slavia Prague" },
 
@@ -471,7 +471,7 @@ export const teamRostersByName = {
             { name: "Mojmir Chytil", position: "Forward", club: "Slavia Prague" },
             { name: "Jan Kuchta", position: "Forward", club: "Sparta Prague" },
             { name: "Patrik Schick", position: "Forward", club: "Bayer Leverkusen" },
-            { name: "Matej Vydra", position: "Forward", club: "Viktoria Plzen" },
+            { name: "Pavel Sulc", position: "Forward", club: "Olympique Lyonnais" },
             { name: "Denis Visinsky", position: "Forward", club: "Viktoria Plzen" },
         ],
     },
