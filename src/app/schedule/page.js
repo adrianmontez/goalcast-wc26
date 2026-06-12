@@ -592,7 +592,7 @@ export default function Schedule() {
       >
         {match.status === "live" && (
           <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-red-400">
-            <span>● LIVE</span>
+            <span>•LIVE</span>
           </div>
         )}
 
