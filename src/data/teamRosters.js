@@ -444,9 +444,9 @@ export const teamRostersByName = {
     "Czechia": {
         manager: { name: "Miroslav Koubek", position: "Manager" },
         players: [
-            { name: "Lukas Hornicek", position: "Goalkeeper", club: "Braga" },
-            { name: "Jan Koutny", position: "Goalkeeper", club: "Sigma Olomouc" },
-            { name: "Jindrich Stanek", position: "Goalkeeper", club: "Slavia Prague" },
+            { name: "Matej Kovar", position: "Goalkeeper", club: "Braga" },
+            { name: "Jindrich Stanek", position: "Goalkeeper", club: "Sigma Olomouc" },
+            { name: "Lukas Hornicek", position: "Goalkeeper", club: "Slavia Prague" },
 
             { name: "Vladimir Coufal", position: "Defender", club: "TSG Hoffenheim" },
             { name: "David Doudera", position: "Defender", club: "Slavia Prague" },
