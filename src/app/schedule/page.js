@@ -434,6 +434,35 @@ export default function Schedule() {
     return extra ? `${elapsed}+${extra}'` : `${elapsed}'`;
   }
 
+  function getTeamAbbrByApiName(apiName) {
+    const allTeams = groups.flatMap((group) => group.teams);
+
+    const team = allTeams.find(
+      (item) =>
+        item.name.toLowerCase() === String(apiName || "").toLowerCase()
+    );
+
+    return team?.abbr || apiName;
+  }
+
+  function formatGoalDetail(event) {
+    const detail = String(event.detail || "");
+
+    if (detail.toLowerCase() === "normal goal") {
+      return "";
+    }
+
+    if (detail.toLowerCase() === "own goal") {
+      return "Own goal";
+    }
+
+    if (detail.toLowerCase() === "penalty") {
+      return "Penalty";
+    }
+
+    return detail;
+  }
+
   function getPenaltyScore(match) {
     const details = getMatchDetails(match);
     const penaltyScore = details?.fixture?.score?.penalty;
@@ -704,15 +733,33 @@ export default function Schedule() {
                         </span>
 
                         <div>
-                          <p className="font-semibold text-white">
-                            {event.player?.name || "Unknown scorer"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-white">
+                              {event.player?.name || "Unknown scorer"}
+                            </p>
 
-                          <p className="text-gray-400">
-                            {event.team?.name || "Team"}
-                            {event.detail ? ` • ${event.detail}` : ""}
-                            {event.assist?.name ? ` • Assist: ${event.assist.name}` : ""}
-                          </p>
+                            {event.team?.name && (
+                              <Image
+                                src={`/flags/${getTeamAbbrByApiName(event.team.name)}.png`}
+                                alt={`${event.team.name} flag`}
+                                width={18}
+                                height={12}
+                                className="object-cover"
+                              />
+                            )}
+                          </div>
+
+                          {event.assist?.name && (
+                            <p className="text-gray-400">
+                              Assist: {event.assist.name}
+                            </p>
+                          )}
+
+                          {formatGoalDetail(event) && (
+                            <p className="text-gray-500">
+                              {formatGoalDetail(event)}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
