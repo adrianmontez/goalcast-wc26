@@ -413,12 +413,38 @@ export default function Schedule() {
     const apiNameMap = {
       "czech republic": "CZE",
       "czechia": "CZE",
+
       "south korea": "KOR",
       "korea republic": "KOR",
       "republic of korea": "KOR",
+
       "usa": "USA",
       "united states": "USA",
       "united states of america": "USA",
+
+      "bosnia": "BIH",
+      "bosnia and herzegovina": "BIH",
+      "bosnia & herzegovina": "BIH",
+      "bosnia-herzegovina": "BIH",
+
+      "turkiye": "TUR",
+      "turkey": "TUR",
+      "türkiye": "TUR",
+
+      "cote d'ivoire": "CIV",
+      "côte d'ivoire": "CIV",
+      "ivory coast": "CIV",
+
+      "cape verde": "CPV",
+      "cape verde islands": "CPV",
+      "cabo verde": "CPV",
+      "cabo verde islands": "CPV",
+
+      "dr congo": "COD",
+      "d.r. congo": "COD",
+      "democratic republic of congo": "COD",
+      "congo dr": "COD",
+      "congo democratic republic": "COD",
     };
 
     if (apiNameMap[normalizedApiName]) {
