@@ -408,11 +408,27 @@ export default function Schedule() {
   }
 
   function getTeamAbbrByApiName(apiName) {
+    const normalizedApiName = String(apiName || "").trim().toLowerCase();
+
+    const apiNameMap = {
+      "czech republic": "CZE",
+      "czechia": "CZE",
+      "south korea": "KOR",
+      "korea republic": "KOR",
+      "republic of korea": "KOR",
+      "usa": "USA",
+      "united states": "USA",
+      "united states of america": "USA",
+    };
+
+    if (apiNameMap[normalizedApiName]) {
+      return apiNameMap[normalizedApiName];
+    }
+
     const allTeams = groups.flatMap((group) => group.teams);
 
     const team = allTeams.find(
-      (item) =>
-        item.name.toLowerCase() === String(apiName || "").toLowerCase()
+      (item) => item.name.toLowerCase() === normalizedApiName
     );
 
     return team?.abbr || apiName;
