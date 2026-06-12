@@ -6,8 +6,53 @@ const API_FOOTBALL_URL =
 
 function normalizeName(name) {
   return String(name || "")
+    .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getApiTeamAbbr(apiName) {
+  const normalizedApiName = normalizeName(apiName);
+
+  const apiNameMap = {
+    "czech republic": "CZE",
+    "czechia": "CZE",
+
+    "south korea": "KOR",
+    "korea republic": "KOR",
+    "republic of korea": "KOR",
+
+    "usa": "USA",
+    "united states": "USA",
+    "united states of america": "USA",
+
+    "bosnia": "BIH",
+    "bosnia and herzegovina": "BIH",
+    "bosnia & herzegovina": "BIH",
+    "bosnia-herzegovina": "BIH",
+
+    "turkiye": "TUR",
+    "turkey": "TUR",
+    "türkiye": "TUR",
+
+    "cote d'ivoire": "CIV",
+    "côte d'ivoire": "CIV",
+    "ivory coast": "CIV",
+
+    "cape verde": "CPV",
+    "cape verde islands": "CPV",
+    "cabo verde": "CPV",
+    "cabo verde islands": "CPV",
+
+    "dr congo": "COD",
+    "d.r. congo": "COD",
+    "democratic republic of congo": "COD",
+    "congo dr": "COD",
+    "congo democratic republic": "COD",
+  };
+
+  return apiNameMap[normalizedApiName] || null;
 }
 
 function buildStaticTeamLookup() {
@@ -176,25 +221,19 @@ export async function GET() {
         return matchingGroup || apiStandings[groupIndex] || [];
     }   
 
-    const teamNameAliases = {
-        USA: ["United States", "United States of America", "USA"],
-        IRN: ["Iran", "IR Iran"],
-        KOR: ["South Korea", "Korea Republic"],
-        CIV: ["Ivory Coast", "Côte d'Ivoire", "Cote d'Ivoire"],
-        COD: ["DR Congo", "Congo DR"],
-    };
-
     function findApiTeamRow(staticTeam, apiGroupRows) {
-        const possibleNames = [
-            staticTeam.name,
-            staticTeam.abbr,
-            ...(teamNameAliases[staticTeam.abbr] || []),
-        ].map(normalizeName);
+      return apiGroupRows.find((row) => {
+        const mappedApiAbbr = getApiTeamAbbr(row.team?.name);
 
-        return apiGroupRows.find((row) => {
-            const apiTeamName = normalizeName(row.team?.name);
-            return possibleNames.includes(apiTeamName);
-        });
+        if (mappedApiAbbr) {
+          return mappedApiAbbr === staticTeam.abbr;
+        }
+
+        return (
+          normalizeName(row.team?.name) === normalizeName(staticTeam.name) ||
+          normalizeName(row.team?.name) === normalizeName(staticTeam.abbr)
+        );
+      });
     }
 
     const standings = staticGroups.map((staticGroup, groupIndex) => {
@@ -228,8 +267,8 @@ export async function GET() {
         const hasApiRows = apiGroupRows.length > 0;
 
         return {
-            group: staticGroup.group,
-            teams: hasApiRows ? [...teams].sort((a, b) => a.rank - b.rank) : teams,
+          group: staticGroup.group,
+          teams,
         };
     });
 
