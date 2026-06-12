@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { groups, matches } from "@/data/wc2026Data";
@@ -23,6 +23,8 @@ export default function Schedule() {
   const [votes, setVotes] = useState({});
 
   const [showCompletedMatches, setShowCompletedMatches] = useState(false);
+  
+  const fetchedFinishedDetailsRef = useRef(new Set());
 
   const [matchDetailsByFixture, setMatchDetailsByFixture] = useState({});
   const [loadingDetailsByFixture, setLoadingDetailsByFixture] = useState({});
@@ -269,6 +271,63 @@ export default function Schedule() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadScorerDetailsForMatches(nextMatches) {
+      const matchesThatNeedDetails = nextMatches.filter((match) => {
+        if (!match.apiFixtureId) return false;
+
+        const isLiveMatch = match.status === "live";
+        const matchDate = new Date(match.apiDate || match.date);
+        const today = new Date();
+
+        const isFinishedToday =
+          match.status === "finished" &&
+          !Number.isNaN(matchDate.getTime()) &&
+          matchDate.getFullYear() === today.getFullYear() &&
+          matchDate.getMonth() === today.getMonth() &&
+          matchDate.getDate() === today.getDate();
+
+        if (isLiveMatch) return true;
+
+        if (isFinishedToday) {
+          return !fetchedFinishedDetailsRef.current.has(match.apiFixtureId);
+        }
+
+        return false;
+      });
+
+      await Promise.all(
+        matchesThatNeedDetails.map(async (match) => {
+          try {
+            const response = await fetch(
+              `/api/live/match-details?fixture=${match.apiFixtureId}`,
+              {
+                cache: "no-store",
+              }
+            );
+
+            const data = await response.json();
+
+            if (!data.ok) return;
+
+            setMatchDetailsByFixture((current) => ({
+              ...current,
+              [match.apiFixtureId]: {
+                fixture: data.fixture,
+                events: data.events || [],
+                updatedAt: data.updatedAt,
+              },
+            }));
+
+            if (match.status === "finished") {
+              fetchedFinishedDetailsRef.current.add(match.apiFixtureId);
+            }
+          } catch (error) {
+            console.error("Could not load scorer details:", error);
+          }
+        })
+      );
+    }
+
     async function loadLiveMatches() {
       try {
         const response = await fetch("/api/live/matches");
@@ -278,8 +337,10 @@ export default function Schedule() {
 
         if (data.ok && data.matches) {
           setScheduleMatches(data.matches);
-          setLiveDataStatus("live");
+          setLiveDataStatus("connected");
           setLiveUpdatedAt(data.updatedAt);
+
+          loadScorerDetailsForMatches(data.matches);
         } else {
           console.error("Live match data failed:", data);
           setLiveDataStatus("static");
@@ -529,8 +590,7 @@ export default function Schedule() {
       >
         {match.status === "live" && (
           <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-red-400">
-            <span className="h-2 w-2 rounded-full bg-red-500"></span>
-            <span>LIVE</span>
+            <span>● LIVE</span>
           </div>
         )}
 

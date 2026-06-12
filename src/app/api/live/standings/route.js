@@ -51,6 +51,77 @@ function buildFallbackStandings() {
   }));
 }
 
+function addManualOrderAndSort(apiStandings) {
+  function getPoints(team) {
+    return Number(team.points ?? team.pts ?? 0);
+  }
+
+  function getGoalsFor(team) {
+    return Number(team.goalsFor ?? team.gf ?? team.goals?.for ?? 0);
+  }
+
+  function getGoalsAgainst(team) {
+    return Number(team.goalsAgainst ?? team.ga ?? team.goals?.against ?? 0);
+  }
+
+  function getGoalDifference(team) {
+    const directGoalDifference =
+      team.goalsDiff ??
+      team.goalDifference ??
+      team.gd ??
+      team.goals?.diff;
+
+    if (directGoalDifference !== undefined && directGoalDifference !== null) {
+      return Number(directGoalDifference);
+    }
+
+    return getGoalsFor(team) - getGoalsAgainst(team);
+  }
+
+  function getMatchesPlayed(team) {
+    return Number(team.played ?? team.mp ?? team.all?.played ?? 0);
+  }
+
+  function getManualOrder(team) {
+    return Number(team.manualOrder ?? 0);
+  }
+
+  return apiStandings.map((groupData) => {
+    return {
+      ...groupData,
+      teams: [...groupData.teams].sort((a, b) => {
+        const pointsDifference = getPoints(b) - getPoints(a);
+
+        if (pointsDifference !== 0) {
+          return pointsDifference;
+        }
+
+        const goalDifferenceDifference =
+          getGoalDifference(b) - getGoalDifference(a);
+
+        if (goalDifferenceDifference !== 0) {
+          return goalDifferenceDifference;
+        }
+
+        const goalsForDifference = getGoalsFor(b) - getGoalsFor(a);
+
+        if (goalsForDifference !== 0) {
+          return goalsForDifference;
+        }
+
+        const matchesPlayedDifference =
+          getMatchesPlayed(a) - getMatchesPlayed(b);
+
+        if (matchesPlayedDifference !== 0) {
+          return matchesPlayedDifference;
+        }
+
+        return getManualOrder(a) - getManualOrder(b);
+      }),
+    };
+  });
+}
+
 export async function GET() {
   try {
     if (!process.env.API_FOOTBALL_KEY) {
@@ -167,8 +238,9 @@ export async function GET() {
         ok: true,
         source: "api-football",
         updatedAt: new Date().toISOString(),
-        standings:
-          standings.length > 0 ? standings : buildFallbackStandings(),
+        standings: addManualOrderAndSort(
+          standings.length > 0 ? standings : buildFallbackStandings()
+        ),
       },
       {
         headers: {
