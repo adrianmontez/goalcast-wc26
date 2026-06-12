@@ -157,6 +157,10 @@ export default function Schedule() {
     if (status === "INT") return "Interrupted";
 
     if (match.status === "live" && match.elapsed) {
+      if (match.extra) {
+        return `${match.elapsed}+${match.extra}'`;
+      }
+
       return `${match.elapsed}'`;
     }
 

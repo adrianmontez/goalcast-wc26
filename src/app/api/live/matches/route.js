@@ -84,7 +84,8 @@ export async function GET() {
         status: mapStatus(apiFixture.fixture?.status?.short),
         apiStatusShort: apiFixture.fixture?.status?.short || null,
         apiStatusLong: apiFixture.fixture?.status?.long || null,
-        elapsed: apiFixture.fixture?.status?.elapsed || null,
+        elapsed: apiFixture.fixture?.status?.elapsed ?? null,
+        extra: apiFixture.fixture?.status?.extra ?? null,
 
         homeScore: apiFixture.goals?.home ?? null,
         awayScore: apiFixture.goals?.away ?? null,
