@@ -586,6 +586,19 @@ export default function Schedule() {
   }
 
   function isTodayMatch(match) {
+    if (
+      match.status === "live" ||
+      match.apiStatusShort === "1H" ||
+      match.apiStatusShort === "HT" ||
+      match.apiStatusShort === "2H" ||
+      match.apiStatusShort === "ET" ||
+      match.apiStatusShort === "BT" ||
+      match.apiStatusShort === "P" ||
+      match.apiStatusShort === "PEN"
+    ) {
+      return true;
+    }
+
     const matchDateValue = getDateOnlyValue(match.apiDate || match.date);
     const todayValue = getTodayDateOnlyValue();
 
@@ -593,6 +606,19 @@ export default function Schedule() {
   }
 
   function isCompletedFromPreviousDay(match) {
+    if (
+      match.status === "live" ||
+      match.apiStatusShort === "1H" ||
+      match.apiStatusShort === "HT" ||
+      match.apiStatusShort === "2H" ||
+      match.apiStatusShort === "ET" ||
+      match.apiStatusShort === "BT" ||
+      match.apiStatusShort === "P" ||
+      match.apiStatusShort === "PEN"
+    ) {
+      return false;
+    }
+
     if (match.status !== "finished") return false;
 
     const matchDateValue = getDateOnlyValue(match.apiDate || match.date);
