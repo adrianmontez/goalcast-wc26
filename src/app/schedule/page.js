@@ -482,6 +482,18 @@ export default function Schedule() {
     return detail;
   }
 
+  function getGoalEventFlagAbbr(event, match) {
+    const detail = String(event.detail || "").toLowerCase();
+    const eventTeamAbbr = getTeamAbbrByApiName(event.team?.name);
+
+    if (detail === "own goal") {
+      if (eventTeamAbbr === match.home) return match.away;
+      if (eventTeamAbbr === match.away) return match.home;
+    }
+
+    return eventTeamAbbr;
+  }
+
   function getPenaltyScore(match) {
     const details = getMatchDetails(match);
     const penaltyScore = details?.fixture?.score?.penalty;
@@ -759,8 +771,8 @@ export default function Schedule() {
 
                             {event.team?.name && (
                               <Image
-                                src={`/flags/${getTeamAbbrByApiName(event.team.name)}.png`}
-                                alt={`${event.team.name} flag`}
+                                src={`/flags/${getGoalEventFlagAbbr(event, match)}.png`}
+                                alt={`${getGoalEventFlagAbbr(event, match)} flag`}
                                 width={18}
                                 height={12}
                                 className="object-cover"
