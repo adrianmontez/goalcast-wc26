@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { matches as staticMatches } from "@/data/wc2026Data";
+import { groups, matches as staticMatches } from "@/data/wc2026Data";
 
 const API_FOOTBALL_URL =
   "https://v3.football.api-sports.io/fixtures?league=1&season=2026";
@@ -20,6 +20,75 @@ function mapStatus(apiStatusShort) {
 
 function sortByApiDate(a, b) {
   return new Date(a.fixture?.date || 0) - new Date(b.fixture?.date || 0);
+}
+
+function normalizeName(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getApiTeamAbbr(apiName) {
+  const normalizedApiName = normalizeName(apiName);
+
+  const apiNameMap = {
+    "czech republic": "CZE",
+    "czechia": "CZE",
+
+    "south korea": "KOR",
+    "korea republic": "KOR",
+    "republic of korea": "KOR",
+
+    "usa": "USA",
+    "united states": "USA",
+    "united states of america": "USA",
+
+    "bosnia": "BIH",
+    "bosnia and herzegovina": "BIH",
+    "bosnia & herzegovina": "BIH",
+    "bosnia-herzegovina": "BIH",
+
+    "turkiye": "TUR",
+    "turkey": "TUR",
+    "türkiye": "TUR",
+
+    "cote d'ivoire": "CIV",
+    "côte d'ivoire": "CIV",
+    "ivory coast": "CIV",
+
+    "cape verde": "CPV",
+    "cape verde islands": "CPV",
+    "cabo verde": "CPV",
+    "cabo verde islands": "CPV",
+
+    "dr congo": "COD",
+    "d.r. congo": "COD",
+    "democratic republic of congo": "COD",
+    "congo dr": "COD",
+    "congo democratic republic": "COD",
+  };
+
+  return apiNameMap[normalizedApiName] || null;
+}
+
+function getApiFixtureTeamAbbr(apiTeamName, staticTeams) {
+  const mappedAbbr = getApiTeamAbbr(apiTeamName);
+
+  if (mappedAbbr) {
+    return mappedAbbr;
+  }
+
+  const apiName = normalizeName(apiTeamName);
+
+  const matchingTeam = staticTeams.find(
+    (team) =>
+      normalizeName(team.name) === apiName ||
+      normalizeName(team.abbr) === apiName
+  );
+
+  return matchingTeam?.abbr || null;
 }
 
 export async function GET() {
@@ -67,8 +136,22 @@ export async function GET() {
       )
       .sort(sortByApiDate);
 
-    const mergedMatches = staticMatches.map((match, index) => {
-      const apiFixture = groupStageFixtures[index];
+    const staticTeams = groups.flatMap((group) => group.teams);
+
+    const mergedMatches = staticMatches.map((match) => {
+      const apiFixture = groupStageFixtures.find((fixture) => {
+        const apiHomeAbbr = getApiFixtureTeamAbbr(
+          fixture.teams?.home?.name,
+          staticTeams
+        );
+
+        const apiAwayAbbr = getApiFixtureTeamAbbr(
+          fixture.teams?.away?.name,
+          staticTeams
+        );
+
+        return apiHomeAbbr === match.home && apiAwayAbbr === match.away;
+      });
 
       if (!apiFixture) {
         return match;
