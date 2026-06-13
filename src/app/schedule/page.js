@@ -964,7 +964,7 @@ export default function Schedule() {
         alt="GoalCast Soccer Ball"
         width={40}
         height={40}
-        className="absolute top-4 right-4 object-contain"
+        className="absolute right-4 top-4 hidden h-10 w-10 object-contain sm:block"
       />
 
       <h1 className="text-2xl sm:text-3xl font-bold mb-2">Match Schedule</h1>
