@@ -68,6 +68,11 @@ function getApiTeamAbbr(apiName) {
     "democratic republic of congo": "COD",
     "congo dr": "COD",
     "congo democratic republic": "COD",
+
+    "curacao": "CUW",
+    "curaçao": "CUW",
+    "curaçao national team": "CUW",
+    "curacao national team": "CUW",
   };
 
   return apiNameMap[normalizedApiName] || null;

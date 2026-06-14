@@ -449,6 +449,11 @@ export default function Schedule() {
       "democratic republic of congo": "COD",
       "congo dr": "COD",
       "congo democratic republic": "COD",
+
+      "curacao": "CUW",
+      "curaçao": "CUW",
+      "curaçao national team": "CUW",
+      "curacao national team": "CUW",
     };
 
     if (apiNameMap[normalizedApiName]) {
