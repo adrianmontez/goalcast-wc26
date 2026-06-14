@@ -124,6 +124,33 @@ export default function TeamsPage() {
   const [openTeams, setOpenTeams] = useState({});
   const [openTeamsLoaded, setOpenTeamsLoaded] = useState(false);
   
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hash = window.location.hash.replace("#", "");
+
+    if (!hash) return;
+
+    const scrollToTeam = () => {
+      const teamElement = document.getElementById(hash);
+
+      if (!teamElement) return;
+
+      const yOffset = -12;
+      const y =
+        teamElement.getBoundingClientRect().top + window.scrollY + yOffset;
+
+      window.scrollTo({
+        top: y,
+        behavior: "smooth",
+      });
+    };
+
+    const timeout = setTimeout(scrollToTeam, 250);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
   const alphabetLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
   const availableLetters = Array.from(
@@ -260,8 +287,8 @@ export default function TeamsPage() {
             )}
 
             <article
-                id={team.abbr}
-                className="scroll-mt-6 border border-gray-700"
+              id={team.abbr}
+              className="scroll-mt-16 border border-gray-700"
             >
               <button
                 type="button"
