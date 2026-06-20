@@ -254,11 +254,8 @@ export const teamRostersByName = {
             { name: "Niko Sigur", position: "Defender", club: "Hajduk Split" },
             { name: "Joel Waterman", position: "Defender", club: "Chicago Fire" },
 
-            { name: "Ali Ahmed", position: "Midfielder", club: "Norwich City" },
-            { name: "Tajon Buchanan", position: "Midfielder", club: "Villarreal" },
             { name: "Mathieu Choiniere", position: "Midfielder", club: "LAFC" },
             { name: "Stephen Eustaquio", position: "Midfielder", club: "LAFC" },
-            { name: "Marcelo Flores", position: "Midfielder", club: "Tigres UANL" },
             { name: "Ismael Kone", position: "Midfielder", club: "Sassuolo" },
             { name: "Liam Millar", position: "Midfielder", club: "Hull City" },
             { name: "Jonathan Osorio", position: "Midfielder", club: "Toronto FC" },
@@ -269,6 +266,9 @@ export const teamRostersByName = {
             { name: "Promise David", position: "Forward", club: "Royale-Union Saint Gilloise" },
             { name: "Cyle Larin", position: "Forward", club: "Southampton" },
             { name: "Tani Oluwaseyi", position: "Forward", club: "Villarreal" },
+            { name: "Ali Ahmed", position: "Forward", club: "Norwich City" },
+            { name: "Tajon Buchanan", position: "Forward", club: "Villarreal" },
+            { name: "Jayden Nelson", position: "Forward", club: "Villarreal" },
         ],
     },
     "Cape Verde": {
@@ -885,9 +885,9 @@ export const teamRostersByName = {
     "Mexico": {
         manager: { name: "Javier Aguirre", position: "Manager" },
         players: [
+            { name: "Raul Rangel", position: "Goalkeeper", club: "Chivas" },
             { name: "Carlos Acevedo", position: "Goalkeeper", club: "Santos Laguna" },
             { name: "Guillermo Ochoa", position: "Goalkeeper", club: "AEL Limassol" },
-            { name: "Raul Rangel", position: "Goalkeeper", club: "Chivas" },
 
             { name: "Jesus Gallardo", position: "Defender", club: "Toluca" },
             { name: "Israel Reyes", position: "Defender", club: "America" },
@@ -895,25 +895,25 @@ export const teamRostersByName = {
             { name: "Jorge Sanchez", position: "Defender", club: "PAOK" },
             { name: "Johan Vasquez", position: "Defender", club: "Genoa" },
             { name: "Mateo Chavez", position: "Defender", club: "AZ Alkmaar" },
+            { name: "Edson Alvarez", position: "Defender", club: "Fenerbahce" },
 
             { name: "Gilberto Mora", position: "Midfielder", club: "Tijuana" },
-            { name: "Edson Alvarez", position: "Midfielder", club: "Fenerbahce" },
             { name: "Orbelin Pineda", position: "Midfielder", club: "AEK Athens" },
             { name: "Luis Romo", position: "Midfielder", club: "Chivas" },
             { name: "Brian Gutierrez", position: "Midfielder", club: "Chivas" },
             { name: "Obed Vargas", position: "Midfielder", club: "Atletico Madrid" },
-            { name: "Cesar Huerta", position: "Midfielder", club: "Anderlecht" },
             { name: "Luis Chavez", position: "Midfielder", club: "Dinamo Moscow" },
             { name: "Erik Lira", position: "Midfielder", club: "Cruz Azul" },
             { name: "Alvaro Fidalgo", position: "Midfielder", club: "Real Betis" },
-            { name: "Roberto Alvarado", position: "Midfielder", club: "Chivas" },
 
-            { name: "Armando Gonzalez", position: "Forward", club: "Chivas" },
             { name: "Raul Jimenez", position: "Forward", club: "Fulham" },
+            { name: "Armando Gonzalez", position: "Forward", club: "Chivas" },
             { name: "Julian Quinones", position: "Forward", club: "Al Qadsiah" },
             { name: "Santiago Gimenez", position: "Forward", club: "AC Milan" },
             { name: "Guillermo Martinez", position: "Forward", club: "Pumas" },
             { name: "Alexis Vega", position: "Forward", club: "Toluca" },
+            { name: "Cesar Huerta", position: "Forward", club: "Anderlecht" },
+            { name: "Roberto Alvarado", position: "Forward", club: "Chivas" },
         ],
     },
     "Morocco": {
@@ -1566,8 +1566,8 @@ export const teamRostersByName = {
     "United States": {
         manager: { name: "Mauricio Pochettino", position: "Manager" },
         players: [
-            { name: "Chris Brady", position: "Goalkeeper", club: "Chicago Fire" },
             { name: "Matt Freese", position: "Goalkeeper", club: "New York City FC" },
+            { name: "Chris Brady", position: "Goalkeeper", club: "Chicago Fire" },
             { name: "Matt Turner", position: "Goalkeeper", club: "New England Revolution" },
 
             { name: "Max Arfsten", position: "Defender", club: "Columbus Crew" },
@@ -1584,17 +1584,17 @@ export const teamRostersByName = {
             { name: "Tyler Adams", position: "Midfielder", club: "AFC Bournemouth" },
             { name: "Sebastian Berhalter", position: "Midfielder", club: "Vancouver Whitecaps" },
             { name: "Weston McKennie", position: "Midfielder", club: "Juventus" },
+            { name: "Gio Reyna", position: "Midfielder", club: "Borussia Monchengladbach" },
             { name: "Cristian Roldan", position: "Midfielder", club: "Seattle Sounders" },
-            { name: "Brenden Aaronson", position: "Midfielder", club: "Leeds United" },
             { name: "Malik Tillman", position: "Midfielder", club: "Bayer Leverkusen" },
             { name: "Tim Weah", position: "Midfielder", club: "Marseille" },
-            { name: "Alejandro Zendejas", position: "Midfielder", club: "Club America" },
 
             { name: "Christian Pulisic", position: "Forward", club: "AC Milan" },
-            { name: "Gio Reyna", position: "Forward", club: "Borussia Monchengladbach" },
             { name: "Folarin Balogun", position: "Forward", club: "AS Monaco" },
             { name: "Ricardo Pepi", position: "Forward", club: "PSV Eindhoven" },
             { name: "Haji Wright", position: "Forward", club: "Coventry City" },
+            { name: "Brenden Aaronson", position: "Forward", club: "Leeds United" },
+            { name: "Alejandro Zendejas", position: "Forward", club: "Club America" },
         ],
     },
     "Uzbekistan": {
