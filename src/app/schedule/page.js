@@ -171,6 +171,7 @@ export default function Schedule() {
     const penaltyScore = getPenaltyScore(match);
 
     return (
+      match.apiStatusShort === "P" ||
       match.apiStatusShort === "PEN" ||
       Boolean(penaltyScore)
     );
@@ -393,12 +394,19 @@ export default function Schedule() {
       const type = String(event.type || "").toLowerCase();
       const detail = String(event.detail || "").toLowerCase();
 
-      return (
-        type === "goal" ||
-        detail.includes("normal goal") ||
-        detail.includes("own goal") ||
-        detail.includes("penalty")
-      );
+      const isMissedPenalty =
+        detail.includes("missed penalty") ||
+        detail.includes("penalty missed") ||
+        detail.includes("penalty saved") ||
+        detail.includes("saved penalty");
+
+      if (isMissedPenalty) return false;
+
+      const isNormalGoal = detail === "normal goal";
+      const isOwnGoal = detail === "own goal";
+      const isScoredPenalty = detail === "penalty";
+
+      return type === "goal" && (isNormalGoal || isOwnGoal || isScoredPenalty);
     });
   }
 
