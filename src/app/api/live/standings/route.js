@@ -172,7 +172,7 @@ function addManualOrderAndSort(apiStandings) {
   });
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
     if (!process.env.API_FOOTBALL_KEY) {
       return NextResponse.json(
@@ -201,10 +201,31 @@ export async function GET() {
       data.errors?.length ||
       Object.keys(data.errors || {}).length
     ) {
+      try {
+        const savedResponse = await fetch(
+          `${request.nextUrl.origin}/api/archive/standings`,
+          { cache: "no-store" }
+        );
+
+        const savedData = await savedResponse.json();
+
+        if (savedData.ok && savedData.snapshot) {
+          return NextResponse.json({
+            ok: true,
+            source: "archive",
+            updatedAt: savedData.snapshot.updated_at,
+            standings: savedData.snapshot.standings_json,
+            warning: "Using saved standings because API-Football failed.",
+          });
+        }
+      } catch (error) {
+        console.error("Could not load archived standings:", error);
+      }
+
       return NextResponse.json(
         {
           ok: false,
-          error: "API-Football standings request failed.",
+          error: "API-Football request failed.",
           details: data.errors,
           standings: buildFallbackStandings(),
         },
@@ -277,14 +298,36 @@ export async function GET() {
         };
     });
 
+    const finalStandings = addManualOrderAndSort(
+      standings.length > 0 ? standings : buildFallbackStandings()
+    );
+
+    try {
+      const saveResponse = await fetch(
+        `${request.nextUrl.origin}/api/archive/standings`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            standings: finalStandings,
+            source: "api-football",
+          }),
+        }
+      );
+
+      if (!saveResponse.ok) {
+        console.error("Could not save standings snapshot.");
+      }
+    } catch (error) {
+      console.error("Could not save standings snapshot:", error);
+    }
+
     return NextResponse.json(
       {
         ok: true,
         source: "api-football",
         updatedAt: new Date().toISOString(),
-        standings: addManualOrderAndSort(
-          standings.length > 0 ? standings : buildFallbackStandings()
-        ),
+        standings: finalStandings,
       },
       {
         headers: {

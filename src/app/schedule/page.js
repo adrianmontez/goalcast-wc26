@@ -539,6 +539,7 @@ export default function Schedule() {
 
     const fixtureId = match.apiFixtureId;
 
+    if (!fixtureId) return;
     if (loadingDetailsByFixture[fixtureId]) return;
 
     setLoadingDetailsByFixture((current) => ({
@@ -547,7 +548,38 @@ export default function Schedule() {
     }));
 
     try {
-      const response = await fetch(`/api/live/match-details?fixture=${fixtureId}`);
+      const isFinished =
+        match.apiStatusShort === "FT" ||
+        match.apiStatusShort === "AET" ||
+        match.apiStatusShort === "PEN";
+
+      if (isFinished) {
+        const savedResponse = await fetch(
+          `/api/archive/finished-match?fixture=${fixtureId}`,
+          { cache: "no-store" }
+        );
+
+        const savedData = await savedResponse.json();
+
+        if (savedData.ok && savedData.snapshot) {
+          setMatchDetailsByFixture((current) => ({
+            ...current,
+            [fixtureId]: {
+              fixture: savedData.snapshot.fixture_json,
+              events: savedData.snapshot.events_json || [],
+              updatedAt: savedData.snapshot.updated_at,
+              source: "archive",
+            },
+          }));
+
+          return;
+        }
+      }
+
+      const response = await fetch(`/api/live/match-details?fixture=${fixtureId}`, {
+        cache: "no-store",
+      });
+
       const data = await response.json();
 
       if (data.ok) {
@@ -557,8 +589,28 @@ export default function Schedule() {
             fixture: data.fixture,
             events: data.events || [],
             updatedAt: data.updatedAt,
+            source: "api",
           },
         }));
+
+        if (isFinished) {
+          await fetch("/api/archive/save-finished-match", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              matchId: match.id,
+              apiFixtureId: match.apiFixtureId,
+              home: match.home,
+              away: match.away,
+              homeScore: match.homeScore,
+              awayScore: match.awayScore,
+              apiStatusShort: match.apiStatusShort,
+              apiStatusLong: match.apiStatusLong,
+              fixture: data.fixture,
+              events: data.events || [],
+            }),
+          });
+        }
       }
     } catch (error) {
       console.error("Could not load match details:", error);
