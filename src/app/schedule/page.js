@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { groups, matches } from "@/data/wc2026Data";
@@ -22,7 +22,11 @@ export default function Schedule() {
 
   const [votes, setVotes] = useState({});
 
-  const [showCompletedMatches, setShowCompletedMatches] = useState(false);
+  const [showCompletedMatches, setShowCompletedMatches] = useState(() => {
+    if (typeof window === "undefined") return false;
+
+    return window.localStorage.getItem("goalcast_show_completed_matches") === "true";
+  });
   
   const fetchedFinishedDetailsRef = useRef(new Set());
 
@@ -141,6 +145,23 @@ export default function Schedule() {
       ...currentOpenMatches,
       [matchId]: !currentOpenMatches[matchId],
     }));
+  }
+
+  function toggleCompletedMatches() {
+    setShowCompletedMatches((current) => {
+      const nextValue = !current;
+
+      try {
+        window.localStorage.setItem(
+          "goalcast_show_completed_matches",
+          String(nextValue)
+        );
+      } catch (error) {
+        console.error("Could not save completed matches preference:", error);
+      }
+
+      return nextValue;
+    });
   }
 
   function getMatchStatusLabel(match) {
@@ -542,7 +563,7 @@ export default function Schedule() {
     });
   }
 
-  async function loadMatchDetails(match) {
+  const loadMatchDetails = useCallback(async (match) => {
     if (!shouldLoadMatchDetails(match)) return;
 
     const fixtureId = match.apiFixtureId;
@@ -628,7 +649,32 @@ export default function Schedule() {
         [fixtureId]: false,
       }));
     }
-  }
+  }, [loadingDetailsByFixture]);
+
+  useEffect(() => {
+    if (!openMatchesLoaded) return;
+
+    const openMatchesThatNeedDetails = scheduleMatches.filter((match) => {
+      if (!openMatches[match.id]) return false;
+      if (!shouldLoadMatchDetails(match)) return false;
+      if (!match.apiFixtureId) return false;
+      if (matchDetailsByFixture[match.apiFixtureId]) return false;
+      if (loadingDetailsByFixture[match.apiFixtureId]) return false;
+
+      return true;
+    });
+
+    openMatchesThatNeedDetails.forEach((match) => {
+      loadMatchDetails(match);
+    });
+  }, [
+    openMatchesLoaded,
+    openMatches,
+    scheduleMatches,
+    matchDetailsByFixture,
+    loadingDetailsByFixture,
+    loadMatchDetails,
+  ]);
 
   function dateAndTimeValue(match) {
     const dateValue = new Date(match.date).getTime();
@@ -1086,7 +1132,7 @@ export default function Schedule() {
         <section className="mb-8">
           <button
             type="button"
-            onClick={() => setShowCompletedMatches((current) => !current)}
+            onClick={toggleCompletedMatches}
             className="mb-3 flex w-full items-center justify-between border-b border-white pb-2 text-left"
           >
             <h2 className="text-lg sm:text-xl font-semibold">
