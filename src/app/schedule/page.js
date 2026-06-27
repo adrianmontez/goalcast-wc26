@@ -339,25 +339,45 @@ export default function Schedule() {
 
     async function loadLiveMatches() {
       try {
-        const response = await fetch("/api/live/matches", {
-          cache: "no-store",
-        });
-        const data = await response.json();
+        const endpointCandidates = ["/api/live/matches"];
+
+        if (typeof window !== "undefined") {
+          endpointCandidates.push(`${window.location.origin}/api/live/matches`);
+        }
+
+        let data = null;
+
+        for (const endpoint of endpointCandidates) {
+          try {
+            const response = await fetch(endpoint, {
+              cache: "no-store",
+            });
+
+            data = await response.json();
+
+            if (data?.matches) {
+              break;
+            }
+          } catch {
+            // Try the next endpoint candidate.
+          }
+        }
 
         if (cancelled) return;
 
-        if (data.ok && data.matches) {
+        if (data?.ok && data.matches) {
           setScheduleMatches(data.matches);
           setLiveDataStatus("connected");
           setLiveUpdatedAt(data.updatedAt);
 
           loadScorerDetailsForMatches(data.matches);
         } else {
-          console.error("Live match data failed:", data);
+          setScheduleMatches(matches);
           setLiveDataStatus("static");
         }
       } catch (error) {
-        console.error("Could not load live matches:", error);
+        console.warn("Could not load live matches.");
+        setScheduleMatches(matches);
         setLiveDataStatus("static");
       }
     }
