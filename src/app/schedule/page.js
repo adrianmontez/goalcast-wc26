@@ -676,6 +676,41 @@ export default function Schedule() {
     loadMatchDetails,
   ]);
 
+  function getMatchDateObject(match) {
+    const rawDate = match.apiDate || match.date;
+
+    if (!rawDate) return null;
+
+    const date = new Date(rawDate);
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date;
+  }
+
+  function formatMatchDate(match) {
+    const date = getMatchDateObject(match);
+
+    if (!date) return match.date || "TBD";
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  function formatMatchTime(match) {
+    const date = getMatchDateObject(match);
+
+    if (!date) return match.time || "TBD";
+
+    return date.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
   function dateAndTimeValue(match) {
     const dateValue = new Date(match.date).getTime();
     const safeDateValue = Number.isNaN(dateValue) ? 9999999999999 : dateValue;
@@ -694,6 +729,68 @@ export default function Schedule() {
   function getTodayDateOnlyValue() {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  }
+
+  function isGroupStageMatch(match) {
+    return match.stage !== "knockout" && Boolean(match.group);
+  }
+
+  function isKnockoutMatch(match) {
+    return match.stage === "knockout";
+  }
+
+  function getMatchCompetitionLabel(match) {
+    if (match.stage === "knockout") {
+      return match.round || "Knockout Round";
+    }
+
+    return match.group ? `Group ${match.group}` : "";
+  }
+
+  function groupKnockoutMatchesByRound(matchesToGroup) {
+    const roundOrder = [
+      "Round of 32",
+      "Round of 16",
+      "Quarterfinals",
+      "Semifinals",
+      "Third Place",
+      "Final",
+    ];
+
+    const grouped = matchesToGroup.reduce((current, match) => {
+      const round = match.round || "Knockout Round";
+
+      if (!current[round]) current[round] = [];
+      current[round].push(match);
+
+      return current;
+    }, {});
+
+    return roundOrder
+      .filter((round) => grouped[round])
+      .map((round) => ({
+        round,
+        matches: grouped[round].sort(
+          (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
+        ),
+      }));
+  }
+
+  function hasTeamFlag(teamAbbr) {
+    return Boolean(teamAbbr) && teamAbbr !== "TBD" && !String(teamAbbr).includes(" ");
+  }
+
+  function getMatchStadium(match) {
+    return (
+      match.fifaVenueName ||
+      match.apiVenue ||
+      match.stadium ||
+      "Stadium TBD"
+    );
+  }
+
+  function getMatchCity(match) {
+    return match.city || match.apiCity || "City TBD";
   }
 
   function isTodayMatch(match) {
@@ -752,14 +849,16 @@ export default function Schedule() {
     (match) => !isTodayMatch(match) && !isCompletedFromPreviousDay(match)
   );
   
-  const groupedMatches = scheduleMatches.reduce((acc, match) => {
-    if (!acc[match.group]) {
-      acc[match.group] = [];
-    }
+  const groupedMatches = scheduleMatches
+    .filter(isGroupStageMatch)
+    .reduce((acc, match) => {
+      if (!acc[match.group]) {
+        acc[match.group] = [];
+      }
 
-    acc[match.group].push(match);
-    return acc;
-  }, {});
+      acc[match.group].push(match);
+      return acc;
+    }, {});
 
   Object.keys(groupedMatches).forEach((group) => {
     groupedMatches[group].sort((a, b) => dateAndTimeValue(a) - dateAndTimeValue(b));
@@ -769,6 +868,10 @@ export default function Schedule() {
 
   const matchesByDateTime = [...dateTimeMainMatches].sort(
     (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
+  );
+
+  const knockoutMatchesByRound = groupKnockoutMatchesByRound(
+    scheduleMatches.filter(isKnockoutMatch)
   );
 
   function renderMatchCard(match) {
@@ -792,7 +895,9 @@ export default function Schedule() {
         )}
 
         <div className="mb-2">
-          <p className="text-[11px] text-gray-400">{match.date}</p>
+          <p className="text-[11px] text-gray-400">
+            {formatMatchDate(match)} • {formatMatchTime(match)}
+          </p>
         </div>
 
         <div className="flex items-center justify-between gap-2">
@@ -800,13 +905,15 @@ export default function Schedule() {
             href={`/teams?from=schedule#${match.home}`}
             className="flex items-center gap-2 min-w-0 hover:underline"
           >
-            <Image
-              src={`/flags/${match.home}.png`}
-              alt={`${match.home} flag`}
-              width={28}
-              height={20}
-              className="object-cover"
-            />
+            {hasTeamFlag(match.home) && (
+              <Image
+                src={`/flags/${match.home}.png`}
+                alt={`${match.home} flag`}
+                width={28}
+                height={20}
+                className="object-cover"
+              />
+            )}
             <span className="font-semibold truncate">{match.home}</span>
           </Link>
 
@@ -847,13 +954,15 @@ export default function Schedule() {
             className="flex items-center justify-end gap-2 min-w-0 hover:underline"
           >
             <span className="font-semibold truncate">{match.away}</span>
-            <Image
-              src={`/flags/${match.away}.png`}
-              alt={`${match.away} flag`}
-              width={28}
-              height={20}
-              className="object-cover"
-            />
+            {hasTeamFlag(match.away) && (
+              <Image
+                src={`/flags/${match.away}.png`}
+                alt={`${match.away} flag`}
+                width={28}
+                height={20}
+                className="object-cover"
+              />
+            )}
           </Link>
         </div>
 
@@ -871,15 +980,17 @@ export default function Schedule() {
             {openMatches[match.id] ? "Hide details" : "Show details"}
           </button>
 
-          <span className="border border-gray-600 px-2 py-0.5 text-[10px] text-gray-300">
-            {groupLabel(match.group)}
-          </span>
+          {getMatchCompetitionLabel(match) && (
+            <span className="border border-gray-600 px-2 py-0.5 text-[10px] text-gray-300">
+              {getMatchCompetitionLabel(match)}
+            </span>
+          )}
         </div>
 
         {openMatches[match.id] && (
           <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
-            <p>Time: {match.time}</p>
-            <p>Stadium: {match.stadium}</p>
+            <p>Time: {formatMatchTime(match)}</p>
+            <p>Stadium: {getMatchStadium(match)}</p>
 
             {shouldLoadMatchDetails(match) && (
               <div className="mt-3 border-t border-gray-700 pt-3">
@@ -1024,20 +1135,22 @@ export default function Schedule() {
                   </span>
                 </button>
 
-                <button
-                  onClick={() => handleVote(match.id, "DRAW")}
-                  disabled={votingMatch === match.id || votingClosed}
-                  className={
-                    myVotes[match.id] === "DRAW"
-                      ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-                      : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                  }
-                >
-                  <span>Draw</span>
-                  <span className="text-gray-300">
-                    ({getVoteCount(match.id, "DRAW")})
-                  </span>
-                </button>
+                {match.stage !== "knockout" && (
+                  <button
+                    onClick={() => handleVote(match.id, "DRAW")}
+                    disabled={votingMatch === match.id || votingClosed}
+                    className={
+                      myVotes[match.id] === "DRAW"
+                        ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                    }
+                  >
+                    <span>Draw</span>
+                    <span className="text-gray-300">
+                      ({getVoteCount(match.id, "DRAW")})
+                    </span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => handleVote(match.id, match.away)}
@@ -1088,17 +1201,29 @@ export default function Schedule() {
             : "Using saved schedule data."}
       </p>
 
-      <div className="mb-6 flex w-full sm:w-fit border border-white text-xs sm:text-sm">
+      <div className="mb-6 grid w-full grid-cols-3 border border-white text-xs sm:text-sm">
         <button
           type="button"
           onClick={() => changeScheduleView("datetime")}
           className={
             scheduleView === "datetime"
-              ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
-              : "flex-1 sm:flex-none bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
+              ? "w-full bg-white px-3 py-2 font-semibold text-black"
+              : "w-full bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
           }
         >
-          View by Date/Time
+          All
+        </button>
+
+        <button
+          type="button"
+          onClick={() => changeScheduleView("knockout")}
+          className={
+            scheduleView === "knockout"
+              ? "w-full bg-white px-3 py-2 font-semibold text-black"
+              : "w-full bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
+          }
+        >
+          KO View
         </button>
 
         <button
@@ -1106,11 +1231,11 @@ export default function Schedule() {
           onClick={() => changeScheduleView("group")}
           className={
             scheduleView === "group"
-              ? "flex-1 sm:flex-none bg-white px-3 py-2 font-semibold text-black"
-              : "flex-1 sm:flex-none bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
+              ? "w-full bg-white px-3 py-2 font-semibold text-black"
+              : "w-full bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800"
           }
         >
-          View by Group
+          Group View
         </button>
       </div>
       
@@ -1225,6 +1350,34 @@ export default function Schedule() {
             </section>
           ))}
         </div>
+      ) : scheduleView === "knockout" ? (
+        <section className="space-y-6">
+          <div className="pb-2 border-b border-white">
+            <h2 className="text-lg sm:text-xl font-semibold">
+              Knockout Matches
+            </h2>
+          </div>
+
+          {knockoutMatchesByRound.length > 0 ? (
+            knockoutMatchesByRound.map((roundData) => (
+              <div key={roundData.round} className="space-y-3">
+                <div className="border-b border-gray-700 pb-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-white">
+                    {roundData.round}
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+                  {roundData.matches.map((match) => renderMatchCard(match))}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-400">
+              Knockout matches will appear here once they are available.
+            </p>
+          )}
+        </section>
       ) : (
         <section className="space-y-3">
           <div className="pb-2 border-b border-white">
@@ -1238,7 +1391,6 @@ export default function Schedule() {
           </div>
         </section>
       )}
-
       <TabBar />
     </main>
   );

@@ -12,6 +12,8 @@ export default function Predict() {
   const bracketImageRef = useRef(null);
   const [generatedBracketImage, setGeneratedBracketImage] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isSyncingStandings, setIsSyncingStandings] = useState(false);
+  const [isSyncingKnockout, setIsSyncingKnockout] = useState(false);
 
   const exportImageDataUrlsRef = useRef({
     trophy: null,
@@ -128,6 +130,297 @@ export default function Predict() {
     const key = getSelectedThirdPlaceKey();
     return thirdPlaceMapping[key] || null;
   };
+
+  const getGoalDifferenceValue = (team) => {
+    const explicit = team.gd ?? team.goalsDiff ?? team.goalDifference ?? team.goals?.diff;
+
+    if (explicit !== undefined && explicit !== null) {
+      return Number(explicit);
+    }
+
+    const goalsFor = Number(team.gf ?? team.goalsFor ?? team.goals?.for ?? 0);
+    const goalsAgainst = Number(team.ga ?? team.goalsAgainst ?? team.goals?.against ?? 0);
+
+    return goalsFor - goalsAgainst;
+  };
+
+  const getSeedForTeamFromRankings = (teamAbbr) => {
+    for (const groupData of groups) {
+      const rank = getRanking(groupData.group)[teamAbbr];
+
+      if (rank) {
+        return `${rank}${groupData.group}`;
+      }
+    }
+
+    return null;
+  };
+
+  const getFinishedWinnerAbbr = (match) => {
+    const status = String(match.apiStatusShort || "").toUpperCase();
+    const isFinished = status === "FT" || status === "AET" || status === "PEN";
+
+    if (!isFinished) return null;
+
+    if (match.homeWinner === true) return match.home;
+    if (match.awayWinner === true) return match.away;
+
+    const homeScore = Number(match.homeScore);
+    const awayScore = Number(match.awayScore);
+
+    if (homeScore > awayScore) return match.home;
+    if (awayScore > homeScore) return match.away;
+
+    const homePenaltyScore = Number(match.penaltyHomeScore);
+    const awayPenaltyScore = Number(match.penaltyAwayScore);
+
+    if (homePenaltyScore > awayPenaltyScore) return match.home;
+    if (awayPenaltyScore > homePenaltyScore) return match.away;
+
+    return null;
+  };
+
+  const getFinishedLoserAbbr = (match) => {
+    const winner = getFinishedWinnerAbbr(match);
+
+    if (!winner) return null;
+    if (winner === match.home) return match.away;
+    if (winner === match.away) return match.home;
+
+    return null;
+  };
+
+  async function syncGroupsWithLiveStandings() {
+    setIsSyncingStandings(true);
+
+    try {
+      const response = await fetch("/api/live/standings", { cache: "no-store" });
+      const data = await response.json();
+
+      if (!response.ok || !data?.ok || !Array.isArray(data?.standings)) {
+        throw new Error(data?.error || "Could not load live standings.");
+      }
+
+      const rankingsFromLive = {};
+      const thirdPlaceCandidates = [];
+
+      groups.forEach((groupData) => {
+        const groupKey = `group_${groupData.group}`;
+        const fallbackRanking = {};
+
+        groupData.teams.forEach((team, index) => {
+          fallbackRanking[team.abbr] = index + 1;
+        });
+
+        const liveGroup = data.standings.find(
+          (item) => String(item.group) === String(groupData.group)
+        );
+
+        if (!liveGroup || !Array.isArray(liveGroup.teams) || liveGroup.teams.length === 0) {
+          rankingsFromLive[groupKey] = fallbackRanking;
+
+          const fallbackThird = Object.entries(fallbackRanking).find(([, rank]) => rank === 3)?.[0];
+          if (fallbackThird) {
+            thirdPlaceCandidates.push({ group: groupData.group, abbr: fallbackThird, pts: 0, gd: 0, gf: 0 });
+          }
+
+          return;
+        }
+
+        const staticAbbrSet = new Set(groupData.teams.map((team) => team.abbr));
+
+        const orderedTeams = [...liveGroup.teams]
+          .filter((team) => staticAbbrSet.has(team.abbr))
+          .sort((a, b) => {
+            const aRank = Number.isFinite(Number(a.rank)) ? Number(a.rank) : null;
+            const bRank = Number.isFinite(Number(b.rank)) ? Number(b.rank) : null;
+
+            if (aRank !== null && bRank !== null && aRank !== bRank) {
+              return aRank - bRank;
+            }
+
+            const pointsDiff = Number(b.pts ?? b.points ?? 0) - Number(a.pts ?? a.points ?? 0);
+            if (pointsDiff !== 0) return pointsDiff;
+
+            const goalDiff = getGoalDifferenceValue(b) - getGoalDifferenceValue(a);
+            if (goalDiff !== 0) return goalDiff;
+
+            return Number(b.gf ?? b.goalsFor ?? b.goals?.for ?? 0) - Number(a.gf ?? a.goalsFor ?? a.goals?.for ?? 0);
+          });
+
+        const rankingForGroup = { ...fallbackRanking };
+        orderedTeams.forEach((team, index) => {
+          rankingForGroup[team.abbr] = index + 1;
+        });
+
+        rankingsFromLive[groupKey] = rankingForGroup;
+
+        const thirdPlaceTeam = orderedTeams[2];
+        if (thirdPlaceTeam?.abbr) {
+          thirdPlaceCandidates.push({
+            group: groupData.group,
+            abbr: thirdPlaceTeam.abbr,
+            pts: Number(thirdPlaceTeam.pts ?? thirdPlaceTeam.points ?? 0),
+            gd: getGoalDifferenceValue(thirdPlaceTeam),
+            gf: Number(thirdPlaceTeam.gf ?? thirdPlaceTeam.goalsFor ?? thirdPlaceTeam.goals?.for ?? 0),
+          });
+        }
+      });
+
+      const topThirdPlaceTeams = [...thirdPlaceCandidates]
+        .sort((a, b) => {
+          if (b.pts !== a.pts) return b.pts - a.pts;
+          if (b.gd !== a.gd) return b.gd - a.gd;
+          if (b.gf !== a.gf) return b.gf - a.gf;
+          return String(a.group).localeCompare(String(b.group));
+        })
+        .slice(0, 8);
+
+      const advancingFromLive = {};
+      topThirdPlaceTeams.forEach((team) => {
+        advancingFromLive[`3rd_${team.group}`] = team.abbr;
+      });
+
+      setRankings(rankingsFromLive);
+      setAdvancing(advancingFromLive);
+      setBracketWinners({});
+    } catch (error) {
+      console.error("Could not sync live standings:", error);
+      alert("Could not sync live standings right now.");
+    } finally {
+      setIsSyncingStandings(false);
+    }
+  }
+
+  function resolveRoundOf32SeedSlot(seedValue, matchNumber, thirdPlaceSlots) {
+    if (/^3[A-L]{2,}$/.test(seedValue)) {
+      return thirdPlaceSlots[matchNumber] || seedValue;
+    }
+
+    return seedValue;
+  }
+
+  function getMatchSideTokens(teamAbbr, winnerTokenByTeam, loserTokenByTeam) {
+    const tokens = [];
+
+    if (teamAbbr && teamAbbr !== "TBD") {
+      tokens.push(teamAbbr);
+    }
+
+    const seed = getSeedForTeamFromRankings(teamAbbr);
+    if (seed) {
+      tokens.push(seed);
+    }
+
+    if (winnerTokenByTeam[teamAbbr]) {
+      tokens.push(winnerTokenByTeam[teamAbbr]);
+    }
+
+    if (loserTokenByTeam[teamAbbr]) {
+      tokens.push(loserTokenByTeam[teamAbbr]);
+    }
+
+    return tokens;
+  }
+
+  function matchSidesSeed(tokensA, tokensB, seedMatch) {
+    return (
+      (tokensA.includes(seedMatch.teamA) && tokensB.includes(seedMatch.teamB)) ||
+      (tokensA.includes(seedMatch.teamB) && tokensB.includes(seedMatch.teamA))
+    );
+  }
+
+  async function syncKnockoutWithLiveResults() {
+    setIsSyncingKnockout(true);
+
+    try {
+      const response = await fetch("/api/live/matches", { cache: "no-store" });
+      const data = await response.json();
+
+      if (!response.ok || !data?.ok || !Array.isArray(data?.matches)) {
+        throw new Error(data?.error || "Could not load live matches.");
+      }
+
+      const liveKnockoutMatches = data.matches
+        .filter((match) => match.stage === "knockout")
+        .sort((a, b) => new Date(a.apiDate || a.date || 0) - new Date(b.apiDate || b.date || 0));
+
+      const thirdPlaceSlots = getThirdPlaceMatchMapping() || {};
+      const winnerTokenByTeam = {};
+      const loserTokenByTeam = {};
+      const usedMatchIds = new Set();
+      const winnersFromLive = {};
+
+      const knockoutRoundOrder = [
+        "Round of 32",
+        "Round of 16",
+        "Quarterfinals",
+        "Semifinals",
+        "Third Place",
+        "Final",
+      ];
+
+      knockoutRoundOrder.forEach((roundType) => {
+        const seedMatches = knockoutSeeding.filter((seedMatch) => seedMatch.roundType === roundType);
+
+        seedMatches.forEach((seedMatch) => {
+          const expectedSeed = {
+            teamA:
+              roundType === "Round of 32"
+                ? resolveRoundOf32SeedSlot(seedMatch.teamA, seedMatch.matchNumber, thirdPlaceSlots)
+                : seedMatch.teamA,
+            teamB:
+              roundType === "Round of 32"
+                ? resolveRoundOf32SeedSlot(seedMatch.teamB, seedMatch.matchNumber, thirdPlaceSlots)
+                : seedMatch.teamB,
+          };
+
+          const matchingLiveMatch = liveKnockoutMatches.find((liveMatch) => {
+            if (usedMatchIds.has(liveMatch.id)) return false;
+            if (liveMatch.round !== roundType) return false;
+
+            const homeTokens = getMatchSideTokens(
+              liveMatch.home,
+              winnerTokenByTeam,
+              loserTokenByTeam
+            );
+
+            const awayTokens = getMatchSideTokens(
+              liveMatch.away,
+              winnerTokenByTeam,
+              loserTokenByTeam
+            );
+
+            return matchSidesSeed(homeTokens, awayTokens, expectedSeed);
+          });
+
+          if (!matchingLiveMatch) return;
+
+          usedMatchIds.add(matchingLiveMatch.id);
+
+          const winnerAbbr = getFinishedWinnerAbbr(matchingLiveMatch);
+          const loserAbbr = getFinishedLoserAbbr(matchingLiveMatch);
+          const matchNumberValue = Number(seedMatch.matchNumber.slice(1));
+
+          if (winnerAbbr) {
+            winnersFromLive[seedMatch.matchNumber] = winnerAbbr;
+            winnerTokenByTeam[winnerAbbr] = `W${matchNumberValue}`;
+          }
+
+          if (loserAbbr) {
+            loserTokenByTeam[loserAbbr] = `L${matchNumberValue}`;
+          }
+        });
+      });
+
+      setBracketWinners(winnersFromLive);
+    } catch (error) {
+      console.error("Could not sync knockout matches:", error);
+      alert("Could not sync knockout matches right now.");
+    } finally {
+      setIsSyncingKnockout(false);
+    }
+  }
 
   const resolveSeedReference = (seed, matchNumber, matchResults) => {
     if (!seed) return null;
@@ -334,26 +627,6 @@ export default function Predict() {
       });
   }
 
-  useEffect(() => {
-    let cancelled = false;
-
-    Promise.resolve().then(async () => {
-      const [trophyDataUrl, soccerBallDataUrl] = await Promise.all([
-        imagePathToDataUrl("/images/goalcast_trophy.png"),
-        imagePathToDataUrl("/images/goalcast_soccerball.png"),
-      ]);
-
-      if (cancelled) return;
-
-      setTrophyImageSrc(trophyDataUrl);
-      setSoccerBallImageSrc(soccerBallDataUrl);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   async function generateBracketImage() {
   if (!bracketImageRef.current) return;
   if (!isBracketComplete()) return;
@@ -554,22 +827,35 @@ export default function Predict() {
 
       {!showBracket && (
         <section className="p-3">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6">
           <div>
             <h2 className="text-lg font-semibold mb-2">Group Stage</h2>
             <p className="text-xs text-gray-400">
               Rank each team 1-4. Top 2 automatically advance.
             </p>
           </div>
-          <button
-            onClick={() => {
-              setRankings({});
-              setAdvancing({});
-            }}
-            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-          >
-            Reset Picks
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              onClick={syncGroupsWithLiveStandings}
+              disabled={isSyncingStandings}
+              className={
+                isSyncingStandings
+                  ? "bg-gray-700 text-gray-400 px-3 py-1 rounded text-sm cursor-not-allowed"
+                  : "bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+              }
+            >
+              {isSyncingStandings ? "Syncing..." : "Use Current Standings"}
+            </button>
+            <button
+              onClick={() => {
+                setRankings({});
+                setAdvancing({});
+              }}
+              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+            >
+              Reset Picks
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -719,19 +1005,30 @@ export default function Predict() {
 
       {showBracket && (
         <section className="p-3">
-          <div className="mb-6 flex justify-center gap-4">
+          <div className="mb-6 mx-auto flex w-full max-w-sm flex-col gap-2 sm:max-w-md">
             <button
               onClick={() => {
                 setShowBracket(false);
                 setBracketWinners({});
               }}
-              className="bg-gray-700 text-white px-4 py-2 rounded font-semibold hover:bg-gray-600"
+              className="w-full bg-gray-700 text-white px-4 py-2 rounded font-semibold hover:bg-gray-600"
             >
               Edit Group Stage Picks
             </button>
             <button
+              onClick={syncKnockoutWithLiveResults}
+              disabled={isSyncingKnockout}
+              className={
+                isSyncingKnockout
+                  ? "w-full bg-gray-700 text-gray-400 px-4 py-2 rounded font-semibold cursor-not-allowed"
+                  : "w-full bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
+              }
+            >
+              {isSyncingKnockout ? "Syncing..." : "Update to Current Results"}
+            </button>
+            <button
               onClick={() => setBracketWinners({})}
-              className="bg-red-600 text-white px-4 py-2 rounded font-semibold hover:bg-red-700"
+              className="w-full bg-red-600 text-white px-4 py-2 rounded font-semibold hover:bg-red-700"
             >
               Reset Picks
             </button>
@@ -757,18 +1054,18 @@ export default function Predict() {
                   if (name === 'Round of 32') {
                     const order = [
                       'M74','M77','M73','M75',
-                      'M76','M78','M79','M80',
                       'M83','M84','M81','M82',
+                      'M76','M78','M79','M80',
                       'M86','M88','M85','M87',
                     ];
                     return order.indexOf(a.matchNumber) - order.indexOf(b.matchNumber);
                   }
                   if (name === 'Round of 16') {
-                    const order = ['M89','M90','M91','M92','M93','M94','M95','M96'];
+                    const order = ['M89','M90','M93','M94','M91','M92','M95','M96'];
                     return order.indexOf(a.matchNumber) - order.indexOf(b.matchNumber);
                   }
                   if (name === 'Quarterfinals') {
-                    const order = ['M97','M99','M98','M100'];
+                    const order = ['M97','M98','M99','M100'];
                     return order.indexOf(a.matchNumber) - order.indexOf(b.matchNumber);
                   }
                   if (name === 'Semifinals') {

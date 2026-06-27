@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { groups, matches as staticMatches } from "@/data/wc2026Data";
+import {
+  getActualVenueName,
+  getFifaVenueName,
+  getVenueCity,
+} from "@/data/venueMap";
 
 const API_FOOTBALL_URL =
   "https://v3.football.api-sports.io/fixtures?league=1&season=2026";
@@ -96,6 +101,72 @@ function getApiFixtureTeamAbbr(apiTeamName, staticTeams) {
   return matchingTeam?.abbr || null;
 }
 
+function formatRoundLabel(apiRound) {
+  const round = String(apiRound || "").toLowerCase();
+
+  if (round.includes("round of 32")) return "Round of 32";
+  if (round.includes("round of 16")) return "Round of 16";
+  if (round.includes("quarter")) return "Quarterfinals";
+  if (round.includes("semi")) return "Semifinals";
+  if (round.includes("third place")) return "Third Place";
+  if (round.includes("final")) return "Final";
+
+  return apiRound || "Knockout Round";
+}
+
+function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams) {
+  const homeAbbr =
+    getApiFixtureTeamAbbr(apiFixture.teams?.home?.name, staticTeams) || "TBD";
+
+  const awayAbbr =
+    getApiFixtureTeamAbbr(apiFixture.teams?.away?.name, staticTeams) || "TBD";
+
+  const apiStatusShort = apiFixture.fixture?.status?.short || null;
+
+  return {
+    id: `ko-${apiFixture.fixture?.id}`,
+    stage: "knockout",
+    round: formatRoundLabel(apiFixture.league?.round),
+    group: null,
+
+    home: homeAbbr,
+    away: awayAbbr,
+
+    homeName: apiFixture.teams?.home?.name || homeAbbr,
+    awayName: apiFixture.teams?.away?.name || awayAbbr,
+
+    date: apiFixture.fixture?.date || null,
+    time: "",
+    stadium: getActualVenueName(apiFixture.fixture?.venue?.name),
+    apiVenue: apiFixture.fixture?.venue?.name || "Stadium TBD",
+    fifaVenueName: getFifaVenueName(apiFixture.fixture?.venue?.name),
+    city: getVenueCity(apiFixture.fixture?.venue?.name),
+    apiCity: apiFixture.fixture?.venue?.city || getVenueCity(apiFixture.fixture?.venue?.name),
+
+    homeWinner: apiFixture.teams?.home?.winner ?? null,
+    awayWinner: apiFixture.teams?.away?.winner ?? null,
+
+    penaltyHomeScore: apiFixture.score?.penalty?.home ?? null,
+    penaltyAwayScore: apiFixture.score?.penalty?.away ?? null,
+
+    apiFixtureId: apiFixture.fixture?.id || null,
+    status: mapStatus(apiStatusShort),
+    apiStatusShort,
+    apiStatusLong: apiFixture.fixture?.status?.long || null,
+    elapsed: apiFixture.fixture?.status?.elapsed ?? null,
+    extra: apiFixture.fixture?.status?.extra ?? null,
+
+    homeScore: apiFixture.goals?.home ?? null,
+    awayScore: apiFixture.goals?.away ?? null,
+
+    apiHomeName: apiFixture.teams?.home?.name || null,
+    apiAwayName: apiFixture.teams?.away?.name || null,
+
+    apiDate: apiFixture.fixture?.date || null,
+    apiVenue: apiFixture.fixture?.venue?.name || null,
+  };
+}
+
 export async function GET() {
   try {
     if (!process.env.API_FOOTBALL_KEY) {
@@ -141,6 +212,20 @@ export async function GET() {
       )
       .sort(sortByApiDate);
 
+    const knockoutFixtures = apiFixtures
+      .filter((fixture) => {
+        const round = String(fixture.league?.round || "").toLowerCase();
+        return (
+          round.includes("round of 32") ||
+          round.includes("round of 16") ||
+          round.includes("quarter") ||
+          round.includes("semi") ||
+          round.includes("third place") ||
+          round.includes("final")
+        );
+      })
+      .sort(sortByApiDate);
+
     const staticTeams = groups.flatMap((group) => group.teams);
 
     const mergedMatches = staticMatches.map((match) => {
@@ -166,6 +251,7 @@ export async function GET() {
         ...match,
 
         stadium: match.stadium,
+        fifaVenueName: getFifaVenueName(apiFixture.fixture?.venue?.name || match.stadium),
 
         apiFixtureId: apiFixture.fixture?.id || null,
 
@@ -185,6 +271,23 @@ export async function GET() {
         apiVenue: apiFixture.fixture?.venue?.name || null,
       };
     });
+    
+    const existingFixtureIds = new Set(
+      mergedMatches
+        .map((match) => match.apiFixtureId)
+        .filter(Boolean)
+    );
+
+    const knockoutMatches = knockoutFixtures
+      .filter((fixture) => !existingFixtureIds.has(fixture.fixture?.id))
+      .map((fixture) => buildKnockoutMatchFromApiFixture(fixture, staticTeams));
+
+    const allMatches = [...mergedMatches, ...knockoutMatches].sort((a, b) => {
+      const aDate = new Date(a.apiDate || a.date || 0).getTime();
+      const bDate = new Date(b.apiDate || b.date || 0).getTime();
+
+      return aDate - bDate;
+    });
 
     return NextResponse.json(
       {
@@ -193,7 +296,8 @@ export async function GET() {
         updatedAt: new Date().toISOString(),
         totalApiFixtures: apiFixtures.length,
         totalGroupStageFixtures: groupStageFixtures.length,
-        matches: mergedMatches,
+        totalKnockoutFixtures: knockoutFixtures.length,
+        matches: allMatches,
       },
       {
         headers: {
