@@ -1059,22 +1059,52 @@ export default function Standings() {
                 : "Using saved standings data"}
         </p>
 
-        <nav
-          aria-label="Group standings navigation"
-          className="mb-6 flex justify-center overflow-x-auto"
-        >
-          <div className="flex w-max items-center gap-0.5 rounded-full border border-gray-700 bg-black/80 px-2 py-1">
-            {standings.map((groupData) => (
-              <a
-                key={groupData.group}
-                href={`#standings-group-${groupData.group}`}
-                className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white hover:bg-gray-700"
-              >
-                {groupData.group}
-              </a>
-            ))}
-          </div>
-        </nav>
+        <div className="mb-6 flex flex-col gap-3 sm:relative sm:min-h-[2.25rem] sm:justify-center">
+          <Link
+            href="/teams"
+            className="inline-flex w-fit items-center gap-2 rounded border border-white bg-black px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-900 sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2"
+          >
+            <span>Teams</span>
+            <Image
+              src="/flags/MEX.png"
+              alt="Mexico flag"
+              width={18}
+              height={12}
+              className="object-cover"
+            />
+            <Image
+              src="/flags/USA.png"
+              alt="USA flag"
+              width={18}
+              height={12}
+              className="object-cover"
+            />
+            <Image
+              src="/flags/CAN.png"
+              alt="Canada flag"
+              width={18}
+              height={12}
+              className="object-cover"
+            />
+          </Link>
+
+          <nav
+            aria-label="Group standings navigation"
+            className="min-w-0 overflow-x-auto sm:flex sm:justify-center"
+          >
+            <div className="mx-auto flex w-max items-center gap-0.5 rounded-full border border-gray-700 bg-black/80 px-2 py-1">
+              {standings.map((groupData) => (
+                <a
+                  key={groupData.group}
+                  href={`#standings-group-${groupData.group}`}
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white hover:bg-gray-700"
+                >
+                  {groupData.group}
+                </a>
+              ))}
+            </div>
+          </nav>
+        </div>
 
         <div className="space-y-6">
           {standings.map((groupData) => {
@@ -1182,36 +1212,6 @@ export default function Standings() {
             })}
         </div>
       </section>
-
-      <div className="mb-6 flex justify-center">
-        <Link
-          href="/teams"
-          className="inline-flex items-center gap-2 rounded border border-white bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-900"
-        >
-          <span>Teams</span>
-          <Image
-            src="/flags/MEX.png"
-            alt="Mexico flag"
-            width={20}
-            height={14}
-            className="object-cover"
-          />
-          <Image
-            src="/flags/USA.png"
-            alt="USA flag"
-            width={20}
-            height={14}
-            className="object-cover"
-          />
-          <Image
-            src="/flags/CAN.png"
-            alt="Canada flag"
-            width={20}
-            height={14}
-            className="object-cover"
-          />
-        </Link>
-      </div>
 
       <TabBar />
     </main>
