@@ -1182,6 +1182,37 @@ export default function Standings() {
             })}
         </div>
       </section>
+
+      <div className="mb-6 flex justify-center">
+        <Link
+          href="/teams"
+          className="inline-flex items-center gap-2 rounded border border-white bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-900"
+        >
+          <span>Teams</span>
+          <Image
+            src="/flags/MEX.png"
+            alt="Mexico flag"
+            width={20}
+            height={14}
+            className="object-cover"
+          />
+          <Image
+            src="/flags/USA.png"
+            alt="USA flag"
+            width={20}
+            height={14}
+            className="object-cover"
+          />
+          <Image
+            src="/flags/CAN.png"
+            alt="Canada flag"
+            width={20}
+            height={14}
+            className="object-cover"
+          />
+        </Link>
+      </div>
+
       <TabBar />
     </main>
   );
