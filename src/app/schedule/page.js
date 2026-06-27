@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import TabBar from "@/components/TabBar";
 import { groups, matches } from "@/data/wc2026Data";
+import { knockoutSeeding } from "@/data/knockoutSeeding";
+import { thirdPlaceMapping } from "@/data/thirdPlaceMapping";
 import Link from "next/link";
 
 
@@ -17,6 +19,7 @@ export default function Schedule() {
   });
   
   const [scheduleMatches, setScheduleMatches] = useState(matches);
+  const [liveStandings, setLiveStandings] = useState([]);
   const [liveDataStatus, setLiveDataStatus] = useState("loading");
   const [liveUpdatedAt, setLiveUpdatedAt] = useState(null);
 
@@ -336,7 +339,9 @@ export default function Schedule() {
 
     async function loadLiveMatches() {
       try {
-        const response = await fetch("/api/live/matches");
+        const response = await fetch("/api/live/matches", {
+          cache: "no-store",
+        });
         const data = await response.json();
 
         if (cancelled) return;
@@ -369,6 +374,36 @@ export default function Schedule() {
 
   useEffect(() => {
     localStorage.setItem("goalcast_last_schedule_view", "/schedule");
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLiveStandings() {
+      try {
+        const response = await fetch("/api/live/standings", {
+          cache: "no-store",
+        });
+        const data = await response.json();
+
+        if (cancelled) return;
+
+        if (Array.isArray(data?.standings)) {
+          setLiveStandings(data.standings);
+        }
+      } catch (error) {
+        console.error("Could not load standings for knockout seeding:", error);
+      }
+    }
+
+    loadLiveStandings();
+
+    const interval = setInterval(loadLiveStandings, 60000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   function groupLabel(group) {
@@ -780,17 +815,302 @@ export default function Schedule() {
     return Boolean(teamAbbr) && teamAbbr !== "TBD" && !String(teamAbbr).includes(" ");
   }
 
-  function getMatchStadium(match) {
+  function getTeamRankInStandings(teamAbbr) {
+    for (const groupData of liveStandings) {
+      const index = groupData.teams.findIndex((team) => team.abbr === teamAbbr);
+
+      if (index >= 0) {
+        const explicitRank = Number(groupData.teams[index]?.rank);
+
+        return {
+          group: String(groupData.group),
+          rank: Number.isFinite(explicitRank) && explicitRank > 0 ? explicitRank : index + 1,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  function getSeedForTeam(teamAbbr) {
+    const rankData = getTeamRankInStandings(teamAbbr);
+
+    if (!rankData) return null;
+    return `${rankData.rank}${rankData.group}`;
+  }
+
+  function getBestThirdPlaceGroupKey() {
+    const thirdPlaceTeams = liveStandings
+      .map((groupData) => {
+        const third = groupData.teams?.[2];
+        if (!third) return null;
+
+        return {
+          group: String(groupData.group),
+          pts: Number(third.pts ?? third.points ?? 0),
+          gd: Number(third.gd ?? third.goalsDiff ?? third.goalDifference ?? third.goals?.diff ?? 0),
+          gf: Number(third.gf ?? third.goalsFor ?? third.goals?.for ?? 0),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.gd !== a.gd) return b.gd - a.gd;
+        if (b.gf !== a.gf) return b.gf - a.gf;
+        return a.group.localeCompare(b.group);
+      })
+      .slice(0, 8)
+      .map((item) => item.group)
+      .sort()
+      .join("");
+
+    return thirdPlaceTeams;
+  }
+
+  function resolveRoundOf32Seed(seedValue, seedMatch, thirdPlaceSlots) {
+    if (/^3[A-L]{2,}$/.test(seedValue)) {
+      return thirdPlaceSlots[seedMatch.matchNumber] || seedValue;
+    }
+
+    return seedValue;
+  }
+
+  function getFinishedWinner(match) {
+    const status = String(match.apiStatusShort || "").toUpperCase();
+    const isFinished = status === "FT" || status === "AET" || status === "PEN";
+
+    if (!isFinished) return null;
+    if (match.homeWinner === true) return match.home;
+    if (match.awayWinner === true) return match.away;
+
+    const homeScore = Number(match.homeScore);
+    const awayScore = Number(match.awayScore);
+
+    if (homeScore > awayScore) return match.home;
+    if (awayScore > homeScore) return match.away;
+
+    return null;
+  }
+
+  function getFinishedLoser(match) {
+    const winner = getFinishedWinner(match);
+    if (!winner) return null;
+    if (winner === match.home) return match.away;
+    if (winner === match.away) return match.home;
+    return null;
+  }
+
+  function getPossibleSideTokens(teamAbbr, winnerTokenByTeam, loserTokenByTeam) {
+    const tokens = [];
+
+    if (teamAbbr && teamAbbr !== "TBD") {
+      tokens.push(teamAbbr);
+    }
+
+    const seed = getSeedForTeam(teamAbbr);
+    if (seed) tokens.push(seed);
+
+    if (winnerTokenByTeam[teamAbbr]) tokens.push(winnerTokenByTeam[teamAbbr]);
+    if (loserTokenByTeam[teamAbbr]) tokens.push(loserTokenByTeam[teamAbbr]);
+
+    return tokens;
+  }
+
+  function sideTokensMatchSeed(tokensA, tokensB, seedMatch) {
     return (
+      (tokensA.includes(seedMatch.teamA) && tokensB.includes(seedMatch.teamB)) ||
+      (tokensA.includes(seedMatch.teamB) && tokensB.includes(seedMatch.teamA))
+    );
+  }
+
+  const knockoutMatchNumberById = (() => {
+    const map = new Map();
+    const knockoutMatches = scheduleMatches
+      .filter((match) => match.stage === "knockout")
+      .map((match) => ({ ...match, assignedMatchNumber: null }));
+
+    if (knockoutMatches.length === 0) {
+      return map;
+    }
+
+    const winnerTokenByTeam = {};
+    const loserTokenByTeam = {};
+    const thirdPlaceSlots = thirdPlaceMapping[getBestThirdPlaceGroupKey()] || {};
+
+    // Round of 32: assign by actual team seed placements.
+    knockoutMatches
+      .filter((match) => match.round === "Round of 32")
+      .forEach((match) => {
+        const homeSeed = getSeedForTeam(match.home);
+        const awaySeed = getSeedForTeam(match.away);
+
+        if (!homeSeed || !awaySeed) {
+          if (match.matchNumber) {
+            match.assignedMatchNumber = match.matchNumber;
+            map.set(match.id, match.matchNumber);
+          }
+
+          return;
+        }
+
+        const matchedSeed = knockoutSeeding
+          .filter((seedMatch) => seedMatch.roundType === "Round of 32")
+          .find((seedMatch) => {
+            const resolvedA = resolveRoundOf32Seed(seedMatch.teamA, seedMatch, thirdPlaceSlots);
+            const resolvedB = resolveRoundOf32Seed(seedMatch.teamB, seedMatch, thirdPlaceSlots);
+
+            return (
+              (resolvedA === homeSeed && resolvedB === awaySeed) ||
+              (resolvedA === awaySeed && resolvedB === homeSeed)
+            );
+          });
+
+        if (!matchedSeed) {
+          if (match.matchNumber) {
+            match.assignedMatchNumber = match.matchNumber;
+            map.set(match.id, match.matchNumber);
+          }
+
+          return;
+        }
+
+        match.assignedMatchNumber = matchedSeed.matchNumber;
+        map.set(match.id, matchedSeed.matchNumber);
+      });
+
+    // Build winner/loser tokens from already assigned finished matches.
+    knockoutMatches.forEach((match) => {
+      if (!match.assignedMatchNumber) return;
+
+      const winner = getFinishedWinner(match);
+      const loser = getFinishedLoser(match);
+      const number = Number(String(match.assignedMatchNumber).replace("M", ""));
+
+      if (winner) winnerTokenByTeam[winner] = `W${number}`;
+      if (loser) loserTokenByTeam[loser] = `L${number}`;
+    });
+
+    const laterRounds = [
+      "Round of 16",
+      "Quarterfinals",
+      "Semifinals",
+      "Third Place",
+      "Final",
+    ];
+
+    laterRounds.forEach((round) => {
+      const roundSeedMatches = knockoutSeeding.filter(
+        (seedMatch) => seedMatch.roundType === round
+      );
+
+      roundSeedMatches.forEach((seedMatch) => {
+        const candidate = knockoutMatches.find((match) => {
+          if (match.round !== round) return false;
+          if (match.assignedMatchNumber) return false;
+
+          const homeTokens = getPossibleSideTokens(
+            match.home,
+            winnerTokenByTeam,
+            loserTokenByTeam
+          );
+          const awayTokens = getPossibleSideTokens(
+            match.away,
+            winnerTokenByTeam,
+            loserTokenByTeam
+          );
+
+          return sideTokensMatchSeed(homeTokens, awayTokens, seedMatch);
+        });
+
+        if (!candidate) return;
+
+        candidate.assignedMatchNumber = seedMatch.matchNumber;
+        map.set(candidate.id, seedMatch.matchNumber);
+
+        const winner = getFinishedWinner(candidate);
+        const loser = getFinishedLoser(candidate);
+        const number = Number(String(seedMatch.matchNumber).replace("M", ""));
+
+        if (winner) winnerTokenByTeam[winner] = `W${number}`;
+        if (loser) loserTokenByTeam[loser] = `L${number}`;
+      });
+
+      knockoutMatches
+        .filter((match) => match.round === round && !match.assignedMatchNumber)
+        .forEach((match) => {
+          if (match.matchNumber) {
+            match.assignedMatchNumber = match.matchNumber;
+            map.set(match.id, match.matchNumber);
+          }
+        });
+    });
+
+    return map;
+  })();
+
+  function getKnockoutSeedMatch(match) {
+    if (match.stage !== "knockout") return null;
+
+    const assignedMatchNumber =
+      knockoutMatchNumberById.get(match.id) || match.matchNumber || null;
+
+    if (assignedMatchNumber) {
+      const directSeedMatch = knockoutSeeding.find(
+        (seedMatch) => seedMatch.matchNumber === assignedMatchNumber
+      );
+
+      if (directSeedMatch) {
+        return directSeedMatch;
+      }
+    }
+
+    const round = match.round || "Knockout Round";
+
+    const roundMatches = scheduleMatches
+      .filter((item) => item.stage === "knockout" && (item.round || "Knockout Round") === round)
+      .sort((a, b) => dateAndTimeValue(a) - dateAndTimeValue(b));
+
+    const roundIndex = roundMatches.findIndex((item) => {
+      if (match.apiFixtureId && item.apiFixtureId) {
+        return Number(item.apiFixtureId) === Number(match.apiFixtureId);
+      }
+
+      return item.id === match.id;
+    });
+
+    if (roundIndex < 0) return null;
+
+    const seedMatchesForRound = knockoutSeeding.filter(
+      (seedMatch) => seedMatch.roundType === round
+    );
+
+    return seedMatchesForRound[roundIndex] || null;
+  }
+
+  function getMatchStadium(match) {
+    const seededMatch = getKnockoutSeedMatch(match);
+
+    if (seededMatch?.venue) {
+      return seededMatch.venue;
+    }
+
+    return (
+      match.venue ||
+      match.stadium ||
       match.fifaVenueName ||
       match.apiVenue ||
-      match.stadium ||
-      "Stadium TBD"
+      ""
     );
   }
 
   function getMatchCity(match) {
-    return match.city || match.apiCity || "City TBD";
+    const seededMatch = getKnockoutSeedMatch(match);
+
+    if (seededMatch?.city) {
+      return seededMatch.city;
+    }
+
+    return match.city || match.apiCity || "";
   }
 
   function isTodayMatch(match) {
@@ -990,7 +1310,7 @@ export default function Schedule() {
         {openMatches[match.id] && (
           <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
             <p>Time: {formatMatchTime(match)}</p>
-            <p>Stadium: {getMatchStadium(match)}</p>
+            <p>Location: {getMatchStadium(match)}</p>
 
             {shouldLoadMatchDetails(match) && (
               <div className="mt-3 border-t border-gray-700 pt-3">

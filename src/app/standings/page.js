@@ -233,7 +233,7 @@ function groupKnockoutMatchesByRound(matchesToGroup, standingsData) {
       status: "scheduled",
       apiStatusShort: "NS",
       apiStatusLong: "Awaiting fixture confirmation",
-      city: "City TBD",
+      city: seedMatch.city || "",
       isPlaceholder: true,
     });
   });
@@ -292,18 +292,20 @@ function getKnockoutStatusLabel(match) {
 }
 
 function getKnockoutCity(match) {
-  return match.city || match.apiCity || "City TBD";
+  const seededMatch = getSeedMatchByMatchNumber(match.bracketMatchNumber);
+
+  if (seededMatch?.city) {
+    return seededMatch.city;
+  }
+
+  return match.city || match.apiCity || "";
 }
 
 function getKnockoutCardFooter(match) {
-  if (match.isPlaceholder) {
-    return "";
-  }
-
   const city = getKnockoutCity(match);
 
   if (match.status === "live") {
-    return `Live • ${city}`;
+    return city ? `Live • ${city}` : "Live";
   }
 
   if (
@@ -311,7 +313,9 @@ function getKnockoutCardFooter(match) {
     match.apiStatusShort === "AET" ||
     match.apiStatusShort === "PEN"
   ) {
-    return `${getKnockoutStatusLabel(match)} • ${city}`;
+    return city
+      ? `${getKnockoutStatusLabel(match)} • ${city}`
+      : getKnockoutStatusLabel(match);
   }
 
   return city;
@@ -656,12 +660,28 @@ function sideTokensMatchSeed(tokensA, tokensB, seedMatch) {
 function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData) {
   const assignedMatches = knockoutMatchesData.map((match) => ({
     ...match,
-    bracketMatchNumber: null,
+    bracketMatchNumber: match.matchNumber || null,
   }));
 
   const fixtureIdToMatchNumber = {};
   const winnerAbbrToToken = {};
   const loserAbbrToToken = {};
+
+  assignedMatches.forEach((match) => {
+    if (!match.bracketMatchNumber) return;
+
+    if (match.apiFixtureId) {
+      fixtureIdToMatchNumber[Number(match.apiFixtureId)] =
+        match.bracketMatchNumber;
+    }
+
+    const winnerAbbr = getFinishedMatchWinnerAbbr(match);
+    const loserAbbr = getFinishedMatchLoserAbbr(match);
+    const numberValue = getMatchNumberValue(match.bracketMatchNumber);
+
+    if (winnerAbbr) winnerAbbrToToken[winnerAbbr] = `W${numberValue}`;
+    if (loserAbbr) loserAbbrToToken[loserAbbr] = `L${numberValue}`;
+  });
 
   // First assign Round of 32 by actual group seeds.
   assignedMatches.forEach((match) => {

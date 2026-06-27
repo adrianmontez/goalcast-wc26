@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { groups, matches as staticMatches } from "@/data/wc2026Data";
+import { knockoutSeeding } from "@/data/knockoutSeeding";
 import {
   getActualVenueName,
   getFifaVenueName,
@@ -114,7 +115,7 @@ function formatRoundLabel(apiRound) {
   return apiRound || "Knockout Round";
 }
 
-function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams) {
+function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams, seededMatch) {
   const homeAbbr =
     getApiFixtureTeamAbbr(apiFixture.teams?.home?.name, staticTeams) || "TBD";
 
@@ -125,6 +126,7 @@ function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams) {
 
   return {
     id: `ko-${apiFixture.fixture?.id}`,
+    matchNumber: seededMatch?.matchNumber || null,
     stage: "knockout",
     round: formatRoundLabel(apiFixture.league?.round),
     group: null,
@@ -137,10 +139,12 @@ function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams) {
 
     date: apiFixture.fixture?.date || null,
     time: "",
-    stadium: getActualVenueName(apiFixture.fixture?.venue?.name),
-    apiVenue: apiFixture.fixture?.venue?.name || "Stadium TBD",
-    fifaVenueName: getFifaVenueName(apiFixture.fixture?.venue?.name),
-    city: getVenueCity(apiFixture.fixture?.venue?.name),
+    venue: seededMatch?.venue || getActualVenueName(apiFixture.fixture?.venue?.name),
+    stadium: seededMatch?.venue || getActualVenueName(apiFixture.fixture?.venue?.name),
+    apiVenue: apiFixture.fixture?.venue?.name || "",
+    fifaVenueName:
+      seededMatch?.venue || getFifaVenueName(apiFixture.fixture?.venue?.name),
+    city: seededMatch?.city || getVenueCity(apiFixture.fixture?.venue?.name),
     apiCity: apiFixture.fixture?.venue?.city || getVenueCity(apiFixture.fixture?.venue?.name),
 
     homeWinner: apiFixture.teams?.home?.winner ?? null,
@@ -165,6 +169,54 @@ function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams) {
     apiDate: apiFixture.fixture?.date || null,
     apiVenue: apiFixture.fixture?.venue?.name || null,
   };
+}
+
+function applyKnockoutSeedingData(allMatches) {
+  const knockoutRounds = [
+    "Round of 32",
+    "Round of 16",
+    "Quarterfinals",
+    "Semifinals",
+    "Third Place",
+    "Final",
+  ];
+
+  const matchesById = new Map(
+    allMatches.map((match) => [match.id, { ...match }])
+  );
+
+  knockoutRounds.forEach((round) => {
+    const roundMatches = [...matchesById.values()]
+      .filter((match) => match.stage === "knockout" && match.round === round)
+      .sort((a, b) => new Date(a.apiDate || a.date || 0) - new Date(b.apiDate || b.date || 0));
+
+    const seededMatchesForRound = knockoutSeeding.filter(
+      (seedMatch) => seedMatch.roundType === round
+    );
+
+    roundMatches.forEach((match, index) => {
+      const seededMatch =
+        (match.matchNumber &&
+          knockoutSeeding.find(
+            (seedMatch) => seedMatch.matchNumber === match.matchNumber
+          )) ||
+        seededMatchesForRound[index] ||
+        null;
+
+      if (!seededMatch) return;
+
+      matchesById.set(match.id, {
+        ...match,
+        matchNumber: seededMatch.matchNumber,
+        venue: seededMatch.venue,
+        stadium: seededMatch.venue,
+        fifaVenueName: seededMatch.venue,
+        city: seededMatch.city,
+      });
+    });
+  });
+
+  return [...matchesById.values()];
 }
 
 export async function GET() {
@@ -278,11 +330,39 @@ export async function GET() {
         .filter(Boolean)
     );
 
+    const knockoutRoundCounters = {};
+
     const knockoutMatches = knockoutFixtures
       .filter((fixture) => !existingFixtureIds.has(fixture.fixture?.id))
-      .map((fixture) => buildKnockoutMatchFromApiFixture(fixture, staticTeams));
+      .map((fixture, globalKnockoutIndex) => {
+        const round = formatRoundLabel(fixture.league?.round);
+        const roundIndex = knockoutRoundCounters[round] || 0;
+        knockoutRoundCounters[round] = roundIndex + 1;
 
-    const allMatches = [...mergedMatches, ...knockoutMatches].sort((a, b) => {
+        const seededMatchesForRound = knockoutSeeding.filter(
+          (seedMatch) => seedMatch.roundType === round
+        );
+
+        const seededMatch =
+          seededMatchesForRound[roundIndex] ||
+          knockoutSeeding[globalKnockoutIndex] ||
+          null;
+
+        return buildKnockoutMatchFromApiFixture(
+          fixture,
+          staticTeams,
+          seededMatch
+        );
+      });
+
+    const nonKnockoutMatches = mergedMatches.filter(
+      (match) => match.stage !== "knockout"
+    );
+
+    const allMatches = applyKnockoutSeedingData([
+      ...nonKnockoutMatches,
+      ...knockoutMatches,
+    ]).sort((a, b) => {
       const aDate = new Date(a.apiDate || a.date || 0).getTime();
       const bDate = new Date(b.apiDate || b.date || 0).getTime();
 
