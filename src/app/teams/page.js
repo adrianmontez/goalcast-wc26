@@ -268,6 +268,7 @@ export default function TeamsPage() {
             );
         })}
       </nav>
+
       <section className="space-y-3 pr-6 sm:pr-8">
         {teams.map((team, index) => {
           const merits = team.merits;

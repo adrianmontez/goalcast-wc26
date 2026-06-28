@@ -989,7 +989,32 @@ export default function Standings() {
                           : "border border-gray-700 bg-black p-2 text-xs"
                       }
                     >
-                      <div className="flex items-center justify-between gap-2">
+                      {(() => {
+                        const loserAbbr = getFinishedMatchLoserAbbr(match);
+
+                        const homeRowClass =
+                          loserAbbr && loserAbbr === match.home
+                            ? "flex items-center justify-between gap-2 opacity-45"
+                            : "flex items-center justify-between gap-2";
+
+                        const awayRowClass =
+                          loserAbbr && loserAbbr === match.away
+                            ? "mt-1 flex items-center justify-between gap-2 opacity-45"
+                            : "mt-1 flex items-center justify-between gap-2";
+
+                        const homeTeamClass =
+                          loserAbbr && loserAbbr === match.home
+                            ? "truncate font-semibold text-gray-400"
+                            : "truncate font-semibold text-white";
+
+                        const awayTeamClass =
+                          loserAbbr && loserAbbr === match.away
+                            ? "truncate font-semibold text-gray-400"
+                            : "truncate font-semibold text-white";
+
+                        return (
+                          <>
+                      <div className={homeRowClass}>
                         <div className="flex min-w-0 items-center gap-2">
                           {hasTeamFlag(match.home) &&
                             (!match.isPlaceholder || match.homeConfirmed) && (
@@ -1002,7 +1027,7 @@ export default function Standings() {
                             />
                           )}
 
-                          <span className="truncate font-semibold text-white">
+                          <span className={homeTeamClass}>
                             {match.home}
                           </span>
                         </div>
@@ -1012,7 +1037,7 @@ export default function Standings() {
                         </span>
                       </div>
 
-                      <div className="mt-1 flex items-center justify-between gap-2">
+                      <div className={awayRowClass}>
                         <div className="flex min-w-0 items-center gap-2">
                           {hasTeamFlag(match.away) &&
                             (!match.isPlaceholder || match.awayConfirmed) && (
@@ -1025,7 +1050,7 @@ export default function Standings() {
                             />
                           )}
 
-                          <span className="truncate font-semibold text-white">
+                          <span className={awayTeamClass}>
                             {match.away}
                           </span>
                         </div>
@@ -1034,6 +1059,10 @@ export default function Standings() {
                           {match.awayScore ?? "-"}
                         </span>
                       </div>
+
+                          </>
+                        );
+                      })()}
 
                       <div className="mt-2 text-center">
                         <p
@@ -1079,34 +1108,36 @@ export default function Standings() {
                 : "Using saved standings data"}
         </p>
 
-        <div className="mb-6 flex flex-col gap-3 sm:relative sm:min-h-[2.25rem] sm:justify-center">
-          <Link
-            href="/teams"
-            className="inline-flex w-fit items-center gap-2 rounded border border-white bg-black px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-900 sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2"
-          >
-            <span>Teams</span>
-            <Image
-              src="/flags/MEX.png"
-              alt="Mexico flag"
-              width={18}
-              height={12}
-              className="object-cover"
-            />
-            <Image
-              src="/flags/USA.png"
-              alt="USA flag"
-              width={18}
-              height={12}
-              className="object-cover"
-            />
-            <Image
-              src="/flags/CAN.png"
-              alt="Canada flag"
-              width={18}
-              height={12}
-              className="object-cover"
-            />
-          </Link>
+        <div className="mb-6 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/teams"
+              className="inline-flex w-fit items-center gap-2 rounded border border-white bg-black px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-900"
+            >
+              <span>Teams</span>
+              <Image
+                src="/flags/MEX.png"
+                alt="Mexico flag"
+                width={18}
+                height={12}
+                className="object-cover"
+              />
+              <Image
+                src="/flags/USA.png"
+                alt="USA flag"
+                width={18}
+                height={12}
+                className="object-cover"
+              />
+              <Image
+                src="/flags/CAN.png"
+                alt="Canada flag"
+                width={18}
+                height={12}
+                className="object-cover"
+              />
+            </Link>
+          </div>
 
           <nav
             aria-label="Group standings navigation"

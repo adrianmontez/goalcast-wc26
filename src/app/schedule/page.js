@@ -831,22 +831,127 @@ export default function Schedule() {
       "Final",
     ];
 
+    const seedOrderByRound = knockoutSeeding.reduce((current, seedMatch, index) => {
+      if (!current[seedMatch.roundType]) {
+        current[seedMatch.roundType] = {};
+      }
+
+      current[seedMatch.roundType][seedMatch.matchNumber] = index;
+      return current;
+    }, {});
+
     const grouped = matchesToGroup.reduce((current, match) => {
       const round = match.round || "Knockout Round";
+      const assignedMatchNumber =
+        knockoutMatchNumberById.get(match.id) || match.matchNumber;
+
+      const normalizedMatchNumber = assignedMatchNumber
+        ? String(assignedMatchNumber).startsWith("M")
+          ? String(assignedMatchNumber)
+          : `M${assignedMatchNumber}`
+        : null;
 
       if (!current[round]) current[round] = [];
+
+      if (normalizedMatchNumber) {
+        const existingIndex = current[round].findIndex((item) => {
+          const itemMatchNumber = knockoutMatchNumberById.get(item.id) || item.matchNumber;
+          const normalizedItemMatchNumber = itemMatchNumber
+            ? String(itemMatchNumber).startsWith("M")
+              ? String(itemMatchNumber)
+              : `M${itemMatchNumber}`
+            : null;
+
+          return normalizedItemMatchNumber === normalizedMatchNumber;
+        });
+
+        if (existingIndex >= 0) {
+          current[round][existingIndex] = match;
+          return current;
+        }
+      }
+
       current[round].push(match);
 
       return current;
     }, {});
 
+    knockoutSeeding.forEach((seedMatch) => {
+      const round = seedMatch.roundType;
+
+      if (!grouped[round]) {
+        grouped[round] = [];
+      }
+
+      const exists = grouped[round].some((match) => {
+        const assignedMatchNumber =
+          knockoutMatchNumberById.get(match.id) || match.matchNumber;
+
+        const normalizedMatchNumber = assignedMatchNumber
+          ? String(assignedMatchNumber).startsWith("M")
+            ? String(assignedMatchNumber)
+            : `M${assignedMatchNumber}`
+          : null;
+
+        return normalizedMatchNumber === seedMatch.matchNumber;
+      });
+
+      if (exists) return;
+
+      grouped[round].push({
+        id: `placeholder-${seedMatch.matchNumber}`,
+        stage: "knockout",
+        round,
+        matchNumber: seedMatch.matchNumber,
+        home: "TBD",
+        away: "TBD",
+        homeScore: null,
+        awayScore: null,
+        status: "scheduled",
+        apiStatusShort: "",
+        date: "TBD",
+        time: "TBD",
+        venue: seedMatch.venue || "",
+        city: seedMatch.city || "",
+      });
+    });
+
     return roundOrder
       .filter((round) => grouped[round])
       .map((round) => ({
         round,
-        matches: grouped[round].sort(
-          (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
-        ),
+        matches: grouped[round].sort((a, b) => {
+          const aMatchNumber = knockoutMatchNumberById.get(a.id) || a.matchNumber;
+          const bMatchNumber = knockoutMatchNumberById.get(b.id) || b.matchNumber;
+
+          const normalizedAMatchNumber = aMatchNumber
+            ? String(aMatchNumber).startsWith("M")
+              ? String(aMatchNumber)
+              : `M${aMatchNumber}`
+            : null;
+
+          const normalizedBMatchNumber = bMatchNumber
+            ? String(bMatchNumber).startsWith("M")
+              ? String(bMatchNumber)
+              : `M${bMatchNumber}`
+            : null;
+
+          const aSeedOrder =
+            normalizedAMatchNumber && seedOrderByRound[round]?.[normalizedAMatchNumber] !== undefined
+              ? seedOrderByRound[round][normalizedAMatchNumber]
+              : Number.MAX_SAFE_INTEGER;
+
+          const bSeedOrder =
+            normalizedBMatchNumber && seedOrderByRound[round]?.[normalizedBMatchNumber] !== undefined
+              ? seedOrderByRound[round][normalizedBMatchNumber]
+              : Number.MAX_SAFE_INTEGER;
+
+          if (aSeedOrder !== bSeedOrder) {
+            return aSeedOrder - bSeedOrder;
+          }
+
+          return dateAndTimeValue(a) - dateAndTimeValue(b);
+        }),
       }));
   }
 
@@ -1238,6 +1343,8 @@ export default function Schedule() {
       match.status === "live" ||
       match.status === "finished" ||
       match.status === "postponed";
+    const teamsConfirmedForVoting =
+      hasTeamFlag(match.home) && hasTeamFlag(match.away);
     const voteMatchId = getVoteMatchId(match);
 
     return (
@@ -1472,23 +1579,35 @@ export default function Schedule() {
                 </p>
               )}
 
+              {!votingClosed && !teamsConfirmedForVoting && (
+                <p className="mb-2 text-[11px] text-gray-400">
+                  Voting opens once both teams are confirmed.
+                </p>
+              )}
+
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleVote(voteMatchId, match.home)}
-                  disabled={votingMatch === voteMatchId || votingClosed}
+                  disabled={
+                    votingMatch === voteMatchId ||
+                    votingClosed ||
+                    !teamsConfirmedForVoting
+                  }
                   className={
                     myVotes[voteMatchId] === match.home
                       ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                       : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   }
                 >
-                  <Image
-                    src={`/flags/${match.home}.png`}
-                    alt={`${match.home} flag`}
-                    width={18}
-                    height={12}
-                    className="object-cover"
-                  />
+                  {hasTeamFlag(match.home) && (
+                    <Image
+                      src={`/flags/${match.home}.png`}
+                      alt={`${match.home} flag`}
+                      width={18}
+                      height={12}
+                      className="object-cover"
+                    />
+                  )}
                   <span>{match.home}</span>
                   <span className="text-gray-300">
                     ({getVoteCount(voteMatchId, match.home)})
@@ -1514,20 +1633,26 @@ export default function Schedule() {
 
                 <button
                   onClick={() => handleVote(voteMatchId, match.away)}
-                  disabled={votingMatch === voteMatchId || votingClosed}
+                  disabled={
+                    votingMatch === voteMatchId ||
+                    votingClosed ||
+                    !teamsConfirmedForVoting
+                  }
                   className={
                     myVotes[voteMatchId] === match.away
                       ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                       : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   }
                 >
-                  <Image
-                    src={`/flags/${match.away}.png`}
-                    alt={`${match.away} flag`}
-                    width={18}
-                    height={12}
-                    className="object-cover"
-                  />
+                  {hasTeamFlag(match.away) && (
+                    <Image
+                      src={`/flags/${match.away}.png`}
+                      alt={`${match.away} flag`}
+                      width={18}
+                      height={12}
+                      className="object-cover"
+                    />
+                  )}
                   <span>{match.away}</span>
                   <span className="text-gray-300">
                     ({getVoteCount(voteMatchId, match.away)})
