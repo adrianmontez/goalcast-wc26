@@ -72,6 +72,25 @@ export default function Schedule() {
     return votes?.[matchId]?.[teamAbbr] || 0;
   }
 
+  function getVoteMatchId(match) {
+    if (match.stage === "knockout") {
+      const assignedMatchNumber =
+        knockoutMatchNumberById.get(match.id) || match.matchNumber;
+
+      if (assignedMatchNumber) {
+        const numericMatchId = Number(
+          String(assignedMatchNumber).replace("M", "")
+        );
+
+        if (Number.isFinite(numericMatchId) && numericMatchId > 0) {
+          return numericMatchId;
+        }
+      }
+    }
+
+    return match.id;
+  }
+
   async function handleVote(matchId, teamAbbr) {
     if (!voterId) return;
 
@@ -1219,6 +1238,8 @@ export default function Schedule() {
       match.status === "live" ||
       match.status === "finished" ||
       match.status === "postponed";
+    const voteMatchId = getVoteMatchId(match);
+
     return (
       <div
         key={match.id}
@@ -1329,7 +1350,6 @@ export default function Schedule() {
 
         {openMatches[match.id] && (
           <div className="mt-2 border-t border-gray-700 pt-2 text-xs text-gray-300">
-            <p>Time: {formatMatchTime(match)}</p>
             <p>Location: {getMatchStadium(match)}</p>
 
             {shouldLoadMatchDetails(match) && (
@@ -1454,10 +1474,10 @@ export default function Schedule() {
 
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => handleVote(match.id, match.home)}
-                  disabled={votingMatch === match.id || votingClosed}
+                  onClick={() => handleVote(voteMatchId, match.home)}
+                  disabled={votingMatch === voteMatchId || votingClosed}
                   className={
-                    myVotes[match.id] === match.home
+                    myVotes[voteMatchId] === match.home
                       ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                       : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   }
@@ -1471,32 +1491,32 @@ export default function Schedule() {
                   />
                   <span>{match.home}</span>
                   <span className="text-gray-300">
-                    ({getVoteCount(match.id, match.home)})
+                    ({getVoteCount(voteMatchId, match.home)})
                   </span>
                 </button>
 
                 {match.stage !== "knockout" && (
                   <button
-                    onClick={() => handleVote(match.id, "DRAW")}
-                    disabled={votingMatch === match.id || votingClosed}
+                    onClick={() => handleVote(voteMatchId, "DRAW")}
+                    disabled={votingMatch === voteMatchId || votingClosed}
                     className={
-                      myVotes[match.id] === "DRAW"
+                      myVotes[voteMatchId] === "DRAW"
                         ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                         : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                     }
                   >
                     <span>Draw</span>
                     <span className="text-gray-300">
-                      ({getVoteCount(match.id, "DRAW")})
+                      ({getVoteCount(voteMatchId, "DRAW")})
                     </span>
                   </button>
                 )}
 
                 <button
-                  onClick={() => handleVote(match.id, match.away)}
-                  disabled={votingMatch === match.id || votingClosed}
+                  onClick={() => handleVote(voteMatchId, match.away)}
+                  disabled={votingMatch === voteMatchId || votingClosed}
                   className={
-                    myVotes[match.id] === match.away
+                    myVotes[voteMatchId] === match.away
                       ? "flex items-center gap-2 border border-yellow-400 bg-yellow-500/20 px-2 py-1 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                       : "flex items-center gap-2 border border-gray-600 bg-black px-2 py-1 text-xs font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   }
@@ -1510,7 +1530,7 @@ export default function Schedule() {
                   />
                   <span>{match.away}</span>
                   <span className="text-gray-300">
-                    ({getVoteCount(match.id, match.away)})
+                    ({getVoteCount(voteMatchId, match.away)})
                   </span>
                 </button>
               </div>
