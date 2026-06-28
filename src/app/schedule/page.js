@@ -831,15 +831,6 @@ export default function Schedule() {
       "Final",
     ];
 
-    const seedOrderByRound = knockoutSeeding.reduce((current, seedMatch, index) => {
-      if (!current[seedMatch.roundType]) {
-        current[seedMatch.roundType] = {};
-      }
-
-      current[seedMatch.roundType][seedMatch.matchNumber] = index;
-      return current;
-    }, {});
-
     const grouped = matchesToGroup.reduce((current, match) => {
       const round = match.round || "Knockout Round";
       const assignedMatchNumber =
@@ -920,38 +911,9 @@ export default function Schedule() {
       .filter((round) => grouped[round])
       .map((round) => ({
         round,
-        matches: grouped[round].sort((a, b) => {
-          const aMatchNumber = knockoutMatchNumberById.get(a.id) || a.matchNumber;
-          const bMatchNumber = knockoutMatchNumberById.get(b.id) || b.matchNumber;
-
-          const normalizedAMatchNumber = aMatchNumber
-            ? String(aMatchNumber).startsWith("M")
-              ? String(aMatchNumber)
-              : `M${aMatchNumber}`
-            : null;
-
-          const normalizedBMatchNumber = bMatchNumber
-            ? String(bMatchNumber).startsWith("M")
-              ? String(bMatchNumber)
-              : `M${bMatchNumber}`
-            : null;
-
-          const aSeedOrder =
-            normalizedAMatchNumber && seedOrderByRound[round]?.[normalizedAMatchNumber] !== undefined
-              ? seedOrderByRound[round][normalizedAMatchNumber]
-              : Number.MAX_SAFE_INTEGER;
-
-          const bSeedOrder =
-            normalizedBMatchNumber && seedOrderByRound[round]?.[normalizedBMatchNumber] !== undefined
-              ? seedOrderByRound[round][normalizedBMatchNumber]
-              : Number.MAX_SAFE_INTEGER;
-
-          if (aSeedOrder !== bSeedOrder) {
-            return aSeedOrder - bSeedOrder;
-          }
-
-          return dateAndTimeValue(a) - dateAndTimeValue(b);
-        }),
+        matches: grouped[round].sort(
+          (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
+        ),
       }));
   }
 
@@ -1339,6 +1301,11 @@ export default function Schedule() {
   );
 
   function renderMatchCard(match) {
+    const isLiveFinal = match.status === "live" && match.round === "Final";
+    const isLiveMexicoMatch =
+      match.status === "live" && (match.home === "MEX" || match.away === "MEX");
+    const isLiveUsaMatch =
+      match.status === "live" && (match.home === "USA" || match.away === "USA");
     const votingClosed =
       match.status === "live" ||
       match.status === "finished" ||
@@ -1352,12 +1319,28 @@ export default function Schedule() {
         key={match.id}
         className={
           match.status === "live"
-            ? "relative border border-red-500 bg-red-500/10 p-3 shadow-[0_0_14px_rgba(239,68,68,0.25)]"
+            ? isLiveFinal
+              ? "relative border border-amber-400 bg-amber-500/10 p-3 shadow-[0_0_14px_rgba(251,191,36,0.35)]"
+              : isLiveMexicoMatch
+                ? "relative border border-green-500 bg-green-500/10 p-3 shadow-[0_0_14px_rgba(34,197,94,0.3)]"
+                : isLiveUsaMatch
+                  ? "relative border border-blue-500 bg-blue-500/10 p-3 shadow-[0_0_14px_rgba(59,130,246,0.3)]"
+                  : "relative border border-red-500 bg-red-500/10 p-3 shadow-[0_0_14px_rgba(239,68,68,0.25)]"
             : "relative border border-gray-700 p-3"
         }
       >
         {match.status === "live" && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-red-400">
+          <div
+            className={
+              isLiveFinal
+                ? "absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-amber-300"
+                : isLiveMexicoMatch
+                  ? "absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-green-400"
+                  : isLiveUsaMatch
+                    ? "absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-blue-400"
+                    : "absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-red-400"
+            }
+          >
             <span>•LIVE</span>
           </div>
         )}
@@ -1402,7 +1385,13 @@ export default function Schedule() {
                   <p
                     className={
                       match.status === "live"
-                        ? "text-[10px] text-red-400"
+                        ? isLiveFinal
+                          ? "text-[10px] text-amber-300"
+                          : isLiveMexicoMatch
+                            ? "text-[10px] text-green-400"
+                            : isLiveUsaMatch
+                              ? "text-[10px] text-blue-400"
+                              : "text-[10px] text-red-400"
                         : "text-[10px] text-gray-400"
                     }
                   >

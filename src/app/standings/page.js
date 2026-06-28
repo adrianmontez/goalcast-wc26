@@ -985,7 +985,13 @@ export default function Standings() {
                       key={match.id}
                       className={
                         match.status === "live"
-                          ? "border border-red-500 bg-red-500/10 p-2 text-xs shadow-[0_0_14px_rgba(239,68,68,0.25)]"
+                          ? match.round === "Final"
+                            ? "border border-amber-400 bg-amber-500/10 p-2 text-xs shadow-[0_0_14px_rgba(251,191,36,0.35)]"
+                            : match.home === "MEX" || match.away === "MEX"
+                              ? "border border-green-500 bg-green-500/10 p-2 text-xs shadow-[0_0_14px_rgba(34,197,94,0.3)]"
+                              : match.home === "USA" || match.away === "USA"
+                                ? "border border-blue-500 bg-blue-500/10 p-2 text-xs shadow-[0_0_14px_rgba(59,130,246,0.3)]"
+                                : "border border-red-500 bg-red-500/10 p-2 text-xs shadow-[0_0_14px_rgba(239,68,68,0.25)]"
                           : "border border-gray-700 bg-black p-2 text-xs"
                       }
                     >
@@ -1068,7 +1074,13 @@ export default function Standings() {
                         <p
                           className={
                             match.status === "live"
-                              ? "truncate text-[8px] font-bold text-red-400"
+                              ? match.round === "Final"
+                                ? "truncate text-[8px] font-bold text-amber-300"
+                                : match.home === "MEX" || match.away === "MEX"
+                                  ? "truncate text-[8px] font-bold text-green-400"
+                                  : match.home === "USA" || match.away === "USA"
+                                    ? "truncate text-[8px] font-bold text-blue-400"
+                                    : "truncate text-[8px] font-bold text-red-400"
                               : "truncate text-[8px] text-gray-500"
                           }
                           title={getKnockoutCardFooter(match)}
