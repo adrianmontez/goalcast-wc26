@@ -1588,12 +1588,37 @@ export default function Schedule() {
                   <p className="text-xs text-gray-500">Loading match details...</p>
                 ) : getPenaltyScore(match) ? (
                   <div className="border border-yellow-500/40 bg-yellow-500/10 p-2 text-xs">
-                    <p className="font-bold text-yellow-300">
-                      {match.home}: {getPenaltyScore(match).home}
-                    </p>
-                    <p className="font-bold text-yellow-300">
-                      {match.away}: {getPenaltyScore(match).away}
-                    </p>
+                    <div className="flex items-center justify-between gap-3 font-bold text-yellow-300">
+                      <span className="flex items-center gap-1">
+                        {hasTeamFlag(match.home) && (
+                          <Image
+                            src={`/flags/${match.home}.png`}
+                            alt={`${match.home} flag`}
+                            width={16}
+                            height={12}
+                            className="object-cover"
+                          />
+                        )}
+                        <span>{match.home}</span>
+                      </span>
+
+                      <span>
+                        {getPenaltyScore(match).home} - {getPenaltyScore(match).away}
+                      </span>
+
+                      <span className="flex items-center gap-1">
+                        <span>{match.away}</span>
+                        {hasTeamFlag(match.away) && (
+                          <Image
+                            src={`/flags/${match.away}.png`}
+                            alt={`${match.away} flag`}
+                            width={16}
+                            height={12}
+                            className="object-cover"
+                          />
+                        )}
+                      </span>
+                    </div>
                   </div>
                 ) : null}
 
