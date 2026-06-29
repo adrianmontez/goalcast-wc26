@@ -302,23 +302,7 @@ function getKnockoutCity(match) {
 }
 
 function getKnockoutCardFooter(match) {
-  const city = getKnockoutCity(match);
-
-  if (match.status === "live") {
-    return city ? `Live • ${city}` : "Live";
-  }
-
-  if (
-    match.apiStatusShort === "FT" ||
-    match.apiStatusShort === "AET" ||
-    match.apiStatusShort === "PEN"
-  ) {
-    return city
-      ? `${getKnockoutStatusLabel(match)} • ${city}`
-      : getKnockoutStatusLabel(match);
-  }
-
-  return city;
+  return getKnockoutCity(match);
 }
 
 function isGroupPlayComplete(standingsData) {
