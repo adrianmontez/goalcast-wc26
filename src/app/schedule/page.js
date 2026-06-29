@@ -677,6 +677,12 @@ export default function Schedule() {
     return `Pens ${penaltyScore.home} - ${penaltyScore.away}`;
   }
 
+  function getPenaltyMainCardClass(match) {
+    return match.status === "live"
+      ? "text-[10px] font-semibold text-yellow-300"
+      : "text-[10px] font-semibold text-gray-400";
+  }
+
   function formatPenaltyEventDetail(event) {
     const detail = String(event.detail || "").toLowerCase();
     const type = String(event.type || "").toLowerCase();
@@ -1441,7 +1447,7 @@ export default function Schedule() {
                 </span>
 
                 {penaltyScore && (
-                  <p className="text-[10px] font-semibold text-yellow-300">
+                  <p className={getPenaltyMainCardClass(match)}>
                     {getPenaltyMainCardText(match, penaltyScore)}
                   </p>
                 )}
@@ -1466,7 +1472,7 @@ export default function Schedule() {
               </>
             ) : (
               penaltyScore ? (
-                <p className="text-[10px] font-semibold text-yellow-300">
+                <p className={getPenaltyMainCardClass(match)}>
                   {getPenaltyMainCardText(match, penaltyScore)}
                 </p>
               ) : (
