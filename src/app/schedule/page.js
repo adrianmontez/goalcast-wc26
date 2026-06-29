@@ -1502,9 +1502,9 @@ export default function Schedule() {
                     {getGoalEvents(match).map((event, index) => (
                       <div
                         key={`${match.apiFixtureId}-goal-${index}`}
-                        className="grid grid-cols-[3rem_1fr] gap-2 border border-gray-800 p-2 text-xs"
+                        className="grid grid-cols-[4.5rem_1fr] gap-2 border border-gray-800 p-2 text-xs"
                       >
-                        <span className="text-gray-400">
+                        <span className="whitespace-nowrap text-gray-400 tabular-nums">
                           {formatGoalMinute(event)}
                         </span>
 
@@ -1572,13 +1572,8 @@ export default function Schedule() {
                     {getPenaltyEvents(match).map((event, index) => (
                       <div
                         key={`${match.apiFixtureId}-penalty-${index}`}
-                        className="grid grid-cols-[3rem_1fr] gap-2 border border-gray-800 p-2 text-xs"
+                        className="border border-gray-800 p-2 text-xs"
                       >
-                        <span className="text-gray-400">
-                          {event.time?.elapsed ?? ""}
-                          {event.time?.extra ? `+${event.time.extra}` : ""}&apos;
-                        </span>
-
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-semibold text-white">
