@@ -489,8 +489,19 @@ export default function Schedule() {
       const type = String(event.type || "").toLowerCase();
       const detail = String(event.detail || "").toLowerCase();
       const comments = String(event.comments || "").toLowerCase();
+      const elapsed = Number(event.time?.elapsed);
+      const extra = Number(event.time?.extra);
+
+      const totalMinute = Number.isFinite(elapsed)
+        ? elapsed + (Number.isFinite(extra) ? extra : 0)
+        : null;
+
+      const isAfterExtraTime = Number.isFinite(totalMinute) && totalMinute > 120;
+
+      if (isAfterExtraTime) return false;
 
       const isPenaltyShootoutEvent =
+        type.includes("shootout") ||
         detail.includes("shootout") ||
         comments.includes("shootout") ||
         comments.includes("penalty shootout");
@@ -507,7 +518,10 @@ export default function Schedule() {
 
       const isNormalGoal = detail === "normal goal";
       const isOwnGoal = detail === "own goal";
-      const isScoredPenalty = detail === "penalty";
+      const isScoredPenalty =
+        detail === "penalty" ||
+        detail.includes("scored penalty") ||
+        detail.includes("penalty goal");
 
       return type === "goal" && (isNormalGoal || isOwnGoal || isScoredPenalty);
     });
