@@ -606,8 +606,16 @@ export default function Schedule() {
     const details = getMatchDetails(match);
     const penaltyScore = details?.fixture?.score?.penalty;
 
-    const homePenalty = penaltyScore?.home;
-    const awayPenalty = penaltyScore?.away;
+    const homePenalty =
+      penaltyScore?.home ??
+      match.penaltyHomeScore ??
+      match.penalty?.home ??
+      null;
+    const awayPenalty =
+      penaltyScore?.away ??
+      match.penaltyAwayScore ??
+      match.penalty?.away ??
+      null;
 
     if (homePenalty === null || homePenalty === undefined) return null;
     if (awayPenalty === null || awayPenalty === undefined) return null;
