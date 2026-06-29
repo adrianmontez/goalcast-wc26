@@ -488,6 +488,14 @@ export default function Schedule() {
     return events.filter((event) => {
       const type = String(event.type || "").toLowerCase();
       const detail = String(event.detail || "").toLowerCase();
+      const comments = String(event.comments || "").toLowerCase();
+
+      const isPenaltyShootoutEvent =
+        detail.includes("shootout") ||
+        comments.includes("shootout") ||
+        comments.includes("penalty shootout");
+
+      if (isPenaltyShootoutEvent) return false;
 
       const isMissedPenalty =
         detail.includes("missed penalty") ||
