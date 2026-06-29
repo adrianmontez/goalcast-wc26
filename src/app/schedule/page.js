@@ -637,6 +637,30 @@ export default function Schedule() {
     });
   }
 
+  function formatPenaltyEventDetail(event) {
+    const detail = String(event.detail || "").toLowerCase();
+    const type = String(event.type || "").toLowerCase();
+
+    if (
+      detail.includes("missed") ||
+      detail.includes("saved") ||
+      detail.includes("save")
+    ) {
+      return "Missed";
+    }
+
+    if (
+      detail === "penalty" ||
+      detail.includes("scored") ||
+      detail.includes("shootout") ||
+      type.includes("penalty")
+    ) {
+      return "Made";
+    }
+
+    return event.detail || event.type || "";
+  }
+
   const loadMatchDetails = useCallback(async (match) => {
     if (!shouldLoadMatchDetails(match)) return;
 
@@ -1310,6 +1334,7 @@ export default function Schedule() {
       match.status === "live" ||
       match.status === "finished" ||
       match.status === "postponed";
+    const penaltyScore = getPenaltyScore(match);
     const teamsConfirmedForVoting =
       hasTeamFlag(match.home) && hasTeamFlag(match.away);
     const voteMatchId = getVoteMatchId(match);
@@ -1375,13 +1400,13 @@ export default function Schedule() {
                   {match.homeScore} - {match.awayScore}
                 </span>
 
-                {getPenaltyScore(match) && (
+                {penaltyScore && (
                   <p className="text-[10px] font-semibold text-yellow-300">
-                    Pens {getPenaltyScore(match).home} - {getPenaltyScore(match).away}
+                    Pens {penaltyScore.home} - {penaltyScore.away}
                   </p>
                 )}
 
-                {getMatchStatusLabel(match) && (
+                {!penaltyScore && getMatchStatusLabel(match) && (
                   <p
                     className={
                       match.status === "live"
@@ -1400,9 +1425,15 @@ export default function Schedule() {
                 )}
               </>
             ) : (
-              <span className="text-xs text-gray-400">
-                {getMatchStatusLabel(match) || "vs"}
-              </span>
+              penaltyScore ? (
+                <p className="text-[10px] font-semibold text-yellow-300">
+                  Pens {penaltyScore.home} - {penaltyScore.away}
+                </p>
+              ) : (
+                <span className="text-xs text-gray-400">
+                  {getMatchStatusLabel(match) || "vs"}
+                </span>
+              )
             )}
           </div>
 
@@ -1524,11 +1555,7 @@ export default function Schedule() {
                       {match.away}: {getPenaltyScore(match).away}
                     </p>
                   </div>
-                ) : (
-                  <p className="text-xs text-gray-500">
-                    Penalty shootout details will appear here if the match reaches penalties.
-                  </p>
-                )}
+                ) : null}
 
                 {getPenaltyEvents(match).length > 0 && (
                   <div className="mt-3 space-y-2">
@@ -1543,11 +1570,22 @@ export default function Schedule() {
                         </span>
 
                         <div>
-                          <p className="font-semibold text-white">
-                            {event.team?.name || "Team"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-white">
+                              {event.player?.name || "Player"}
+                            </p>
+                            {hasTeamFlag(getTeamAbbrByApiName(event.team?.name)) && (
+                              <Image
+                                src={`/flags/${getTeamAbbrByApiName(event.team?.name)}.png`}
+                                alt={`${getTeamAbbrByApiName(event.team?.name)} flag`}
+                                width={18}
+                                height={12}
+                                className="object-cover"
+                              />
+                            )}
+                          </div>
                           <p className="text-gray-400">
-                            {event.player?.name || "Player"} — {event.detail || event.type}
+                            {formatPenaltyEventDetail(event)}
                           </p>
                         </div>
                       </div>
