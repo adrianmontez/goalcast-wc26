@@ -637,6 +637,16 @@ export default function Schedule() {
     });
   }
 
+  function getPenaltyMainCardText(match, penaltyScore) {
+    if (!penaltyScore) return "";
+
+    if (String(match.apiStatusShort || "").toUpperCase() === "PEN") {
+      return `PEN ${penaltyScore.home}-${penaltyScore.away}`;
+    }
+
+    return `Pens ${penaltyScore.home} - ${penaltyScore.away}`;
+  }
+
   function formatPenaltyEventDetail(event) {
     const detail = String(event.detail || "").toLowerCase();
     const type = String(event.type || "").toLowerCase();
@@ -1402,7 +1412,7 @@ export default function Schedule() {
 
                 {penaltyScore && (
                   <p className="text-[10px] font-semibold text-yellow-300">
-                    Pens {penaltyScore.home} - {penaltyScore.away}
+                    {getPenaltyMainCardText(match, penaltyScore)}
                   </p>
                 )}
 
@@ -1427,7 +1437,7 @@ export default function Schedule() {
             ) : (
               penaltyScore ? (
                 <p className="text-[10px] font-semibold text-yellow-300">
-                  Pens {penaltyScore.home} - {penaltyScore.away}
+                  {getPenaltyMainCardText(match, penaltyScore)}
                 </p>
               ) : (
                 <span className="text-xs text-gray-400">
