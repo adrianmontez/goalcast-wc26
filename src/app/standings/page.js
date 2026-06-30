@@ -184,6 +184,17 @@ function groupKnockoutMatchesByRound(matchesToGroup, standingsData) {
     return current;
   }, {});
 
+  function getMatchPriority(match) {
+    let score = 0;
+
+    if (match.apiFixtureId) score += 4;
+    if (match.status === "live") score += 3;
+    if (match.status === "finished") score += 2;
+    if (match.homeScore !== null || match.awayScore !== null) score += 1;
+
+    return score;
+  }
+
   const matchResultsByNumber = {};
   const assignedMatchNumbers = new Set();
 
@@ -191,7 +202,24 @@ function groupKnockoutMatchesByRound(matchesToGroup, standingsData) {
     const round = match.round || "Knockout Round";
 
     if (!grouped[round]) grouped[round] = [];
-    grouped[round].push(match);
+
+    if (match.bracketMatchNumber) {
+      const existingIndex = grouped[round].findIndex(
+        (item) => item.bracketMatchNumber === match.bracketMatchNumber
+      );
+
+      if (existingIndex >= 0) {
+        const currentMatch = grouped[round][existingIndex];
+
+        if (getMatchPriority(match) > getMatchPriority(currentMatch)) {
+          grouped[round][existingIndex] = match;
+        }
+      } else {
+        grouped[round].push(match);
+      }
+    } else {
+      grouped[round].push(match);
+    }
 
     if (!match.bracketMatchNumber) return;
 
@@ -528,6 +556,17 @@ function getMatchNumberValue(matchNumber) {
   return Number(String(matchNumber || "").replace("M", "")) || 9999;
 }
 
+function normalizeVenueText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function isVenueLikeMatch(a, b) {
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
 
 function resolveRoundOf32Seed(seedMatch, standingsData) {
   const thirdPlaceGroupKey = getBestThirdPlaceGroupKey(standingsData);
@@ -651,25 +690,46 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
   const winnerAbbrToToken = {};
   const loserAbbrToToken = {};
 
-  assignedMatches.forEach((match) => {
-    if (!match.bracketMatchNumber) return;
+  function rebuildAssignmentSources() {
+    Object.keys(fixtureIdToMatchNumber).forEach((key) => {
+      delete fixtureIdToMatchNumber[key];
+    });
 
-    if (match.apiFixtureId) {
-      fixtureIdToMatchNumber[Number(match.apiFixtureId)] =
-        match.bracketMatchNumber;
-    }
+    Object.keys(winnerAbbrToToken).forEach((key) => {
+      delete winnerAbbrToToken[key];
+    });
 
-    const winnerAbbr = getFinishedMatchWinnerAbbr(match);
-    const loserAbbr = getFinishedMatchLoserAbbr(match);
-    const numberValue = getMatchNumberValue(match.bracketMatchNumber);
+    Object.keys(loserAbbrToToken).forEach((key) => {
+      delete loserAbbrToToken[key];
+    });
 
-    if (winnerAbbr) winnerAbbrToToken[winnerAbbr] = `W${numberValue}`;
-    if (loserAbbr) loserAbbrToToken[loserAbbr] = `L${numberValue}`;
-  });
+    assignedMatches.forEach((match) => {
+      if (!match.bracketMatchNumber) return;
+
+      if (match.apiFixtureId) {
+        fixtureIdToMatchNumber[Number(match.apiFixtureId)] =
+          match.bracketMatchNumber;
+      }
+
+      const winnerAbbr = getFinishedMatchWinnerAbbr(match);
+      const loserAbbr = getFinishedMatchLoserAbbr(match);
+      const numberValue = getMatchNumberValue(match.bracketMatchNumber);
+
+      if (winnerAbbr) winnerAbbrToToken[winnerAbbr] = `W${numberValue}`;
+      if (loserAbbr) loserAbbrToToken[loserAbbr] = `L${numberValue}`;
+    });
+  }
+
+  rebuildAssignmentSources();
 
   // First assign Round of 32 by actual group seeds.
   assignedMatches.forEach((match) => {
     if (match.round !== "Round of 32") return;
+
+    // Keep canonical assignment when a match number already exists
+    // (from live API/seeding). Re-mapping here can corrupt downstream
+    // winner tokens and produce incorrect placeholders in later rounds.
+    if (match.bracketMatchNumber) return;
 
     const matchNumber = getRoundOf32MatchNumber(match, standingsData);
 
@@ -689,6 +749,8 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
     if (loserAbbr) loserAbbrToToken[loserAbbr] = `L${numberValue}`;
   });
 
+  rebuildAssignmentSources();
+
   const laterRounds = [
     "Round of 16",
     "Quarterfinals",
@@ -703,6 +765,80 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
     const seedMatchesForRound = knockoutSeeding.filter(
       (seedMatch) => seedMatch.roundType === round
     );
+
+    // Canonicalize by seeded venue/city first, even if an incorrect
+    // bracket number already exists. This prevents Houston/Philadelphia swaps.
+    const candidateAssignments = [];
+
+    assignedMatches
+      .filter((match) => match.round === round)
+      .forEach((match) => {
+        const matchVenueCandidates = [
+          match.venue,
+          match.stadium,
+          match.fifaVenueName,
+          match.apiVenue,
+        ]
+          .map(normalizeVenueText)
+          .filter(Boolean);
+
+        const matchCityCandidates = [match.city, match.apiCity]
+          .map(normalizeVenueText)
+          .filter(Boolean);
+
+        const venueOrCitySeed = seedMatchesForRound.find((seedMatch) => {
+          const seedVenue = normalizeVenueText(seedMatch.venue);
+          const seedCity = normalizeVenueText(seedMatch.city);
+
+          const venueMatch =
+            seedVenue &&
+            matchVenueCandidates.some((candidate) =>
+              isVenueLikeMatch(candidate, seedVenue)
+            );
+
+          const cityMatch =
+            seedCity &&
+            matchCityCandidates.some((candidate) => candidate === seedCity);
+
+          return venueMatch || cityMatch;
+        });
+
+        if (!venueOrCitySeed) return;
+
+        candidateAssignments.push({
+          match,
+          matchNumber: venueOrCitySeed.matchNumber,
+        });
+      });
+
+    const candidatesByMatchNumber = candidateAssignments.reduce(
+      (current, candidate) => {
+        if (!current[candidate.matchNumber]) {
+          current[candidate.matchNumber] = [];
+        }
+
+        current[candidate.matchNumber].push(candidate.match);
+        return current;
+      },
+      {}
+    );
+
+    Object.entries(candidatesByMatchNumber).forEach(
+      ([matchNumber, candidateMatches]) => {
+        const preferredMatch =
+          candidateMatches.find(
+            (candidateMatch) => candidateMatch.bracketMatchNumber === matchNumber
+          ) ||
+          candidateMatches.find((candidateMatch) => Boolean(candidateMatch.apiFixtureId)) ||
+          candidateMatches[0];
+
+        if (preferredMatch) {
+          preferredMatch.bracketMatchNumber = matchNumber;
+        }
+      }
+    );
+
+    rebuildAssignmentSources();
 
     seedMatchesForRound.forEach((seedMatch) => {
       const alreadyAssigned = assignedMatches.some(
@@ -750,6 +886,8 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
       if (winnerAbbr) winnerAbbrToToken[winnerAbbr] = `W${numberValue}`;
       if (loserAbbr) loserAbbrToToken[loserAbbr] = `L${numberValue}`;
     });
+
+    rebuildAssignmentSources();
   });
 
   return assignedMatches;

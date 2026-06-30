@@ -115,6 +115,53 @@ function formatRoundLabel(apiRound) {
   return apiRound || "Knockout Round";
 }
 
+function normalizeVenueText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function isVenueLikeMatch(a, b) {
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+function findSeededMatchByVenueOrCity(seedMatchesForRound, fixture) {
+  const fixtureVenueCandidates = [
+    getActualVenueName(fixture.fixture?.venue?.name),
+    getFifaVenueName(fixture.fixture?.venue?.name),
+    fixture.fixture?.venue?.name,
+  ]
+    .map(normalizeVenueText)
+    .filter(Boolean);
+
+  const fixtureCityCandidates = [
+    getVenueCity(fixture.fixture?.venue?.name),
+    fixture.fixture?.venue?.city,
+  ]
+    .map(normalizeVenueText)
+    .filter(Boolean);
+
+  return (
+    seedMatchesForRound.find((seedMatch) => {
+      const seedVenue = normalizeVenueText(seedMatch.venue);
+      const seedCity = normalizeVenueText(seedMatch.city);
+
+      const venueMatch =
+        seedVenue &&
+        fixtureVenueCandidates.some((candidate) =>
+          isVenueLikeMatch(candidate, seedVenue)
+        );
+
+      const cityMatch =
+        seedCity &&
+        fixtureCityCandidates.some((candidate) => candidate === seedCity);
+
+      return venueMatch || cityMatch;
+    }) || null
+  );
+}
+
 function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams, seededMatch) {
   const homeAbbr =
     getApiFixtureTeamAbbr(apiFixture.teams?.home?.name, staticTeams) || "TBD";
@@ -344,6 +391,7 @@ export async function GET() {
         );
 
         const seededMatch =
+          findSeededMatchByVenueOrCity(seededMatchesForRound, fixture) ||
           seededMatchesForRound[roundIndex] ||
           knockoutSeeding[globalKnockoutIndex] ||
           null;

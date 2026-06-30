@@ -1290,7 +1290,12 @@ export default function Schedule() {
   }
 
   function isTodayMatch(match) {
-    if (
+    const isUnresolvedPenaltyState =
+      match.apiStatusShort === "PEN" &&
+      match.homeWinner !== true &&
+      match.awayWinner !== true;
+
+    const isStillInProgress =
       match.status === "live" ||
       match.apiStatusShort === "1H" ||
       match.apiStatusShort === "HT" ||
@@ -1298,8 +1303,9 @@ export default function Schedule() {
       match.apiStatusShort === "ET" ||
       match.apiStatusShort === "BT" ||
       match.apiStatusShort === "P" ||
-      match.apiStatusShort === "PEN"
-    ) {
+      isUnresolvedPenaltyState;
+
+    if (isStillInProgress) {
       return true;
     }
 
@@ -1310,7 +1316,12 @@ export default function Schedule() {
   }
 
   function isCompletedFromPreviousDay(match) {
-    if (
+    const isUnresolvedPenaltyState =
+      match.apiStatusShort === "PEN" &&
+      match.homeWinner !== true &&
+      match.awayWinner !== true;
+
+    const isStillInProgress =
       match.status === "live" ||
       match.apiStatusShort === "1H" ||
       match.apiStatusShort === "HT" ||
@@ -1318,8 +1329,9 @@ export default function Schedule() {
       match.apiStatusShort === "ET" ||
       match.apiStatusShort === "BT" ||
       match.apiStatusShort === "P" ||
-      match.apiStatusShort === "PEN"
-    ) {
+      isUnresolvedPenaltyState;
+
+    if (isStillInProgress) {
       return false;
     }
 
