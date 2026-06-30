@@ -1366,6 +1366,14 @@ export default function Schedule() {
     (a, b) => dateAndTimeValue(a) - dateAndTimeValue(b)
   );
 
+  const isTournamentOver = scheduleMatches.some(
+    (match) =>
+      match.stage === "knockout" &&
+      match.round === "Final" &&
+      (match.status === "finished" ||
+        ["FT", "AET", "PEN"].includes(String(match.apiStatusShort || "")))
+  );
+
   const knockoutMatchesByRound = groupKnockoutMatchesByRound(
     scheduleMatches.filter(isKnockoutMatch)
   );
@@ -1831,26 +1839,42 @@ export default function Schedule() {
         </section>
       )}
 
-      {completedMatches.length > 0 && (
+      {scheduleView === "datetime" && completedMatches.length > 0 && (
         <section className="mb-8">
-          <button
-            type="button"
-            onClick={toggleCompletedMatches}
-            className="mb-3 flex w-full items-center justify-between border-b border-white pb-2 text-left"
-          >
-            <h2 className="text-lg sm:text-xl font-semibold">
-              Completed Matches
-            </h2>
+          {isTournamentOver ? (
+            <>
+              <div className="mb-3 border-b border-white pb-2">
+                <h2 className="text-lg sm:text-xl font-semibold">
+                  Completed Matches
+                </h2>
+              </div>
 
-            <span className="text-xs text-gray-300">
-              {showCompletedMatches ? "Hide" : "Show"} ({completedMatches.length})
-            </span>
-          </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+                {completedMatches.map((match) => renderMatchCard(match))}
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={toggleCompletedMatches}
+                className="mb-3 flex w-full items-center justify-between border-b border-white pb-2 text-left"
+              >
+                <h2 className="text-lg sm:text-xl font-semibold">
+                  Completed Matches
+                </h2>
 
-          {showCompletedMatches && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
-              {completedMatches.map((match) => renderMatchCard(match))}
-            </div>
+                <span className="text-xs text-gray-300">
+                  {showCompletedMatches ? "Hide" : "Show"} ({completedMatches.length})
+                </span>
+              </button>
+
+              {showCompletedMatches && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+                  {completedMatches.map((match) => renderMatchCard(match))}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
@@ -1956,7 +1980,7 @@ export default function Schedule() {
             </p>
           )}
         </section>
-      ) : (
+      ) : isTournamentOver ? null : (
         <section className="space-y-3">
           <div className="pb-2 border-b border-white">
             <h2 className="text-lg sm:text-xl font-semibold">
