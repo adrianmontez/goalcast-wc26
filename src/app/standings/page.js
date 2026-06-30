@@ -1119,26 +1119,48 @@ export default function Standings() {
                     >
                       {(() => {
                         const loserAbbr = getFinishedMatchLoserAbbr(match);
+                        const homeIsTbd =
+                          String(match.home || "").toUpperCase() === "TBD";
+                        const awayIsTbd =
+                          String(match.away || "").toUpperCase() === "TBD";
 
                         const homeRowClass =
                           loserAbbr && loserAbbr === match.home
                             ? "flex items-center justify-between gap-2 opacity-45"
+                            : homeIsTbd
+                              ? "flex items-center justify-between gap-2 opacity-45"
                             : "flex items-center justify-between gap-2";
 
                         const awayRowClass =
                           loserAbbr && loserAbbr === match.away
                             ? "mt-1 flex items-center justify-between gap-2 opacity-45"
+                            : awayIsTbd
+                              ? "mt-1 flex items-center justify-between gap-2 opacity-45"
                             : "mt-1 flex items-center justify-between gap-2";
 
                         const homeTeamClass =
                           loserAbbr && loserAbbr === match.home
                             ? "truncate font-semibold text-gray-400"
+                            : homeIsTbd
+                              ? "truncate font-semibold text-gray-400"
                             : "truncate font-semibold text-white";
 
                         const awayTeamClass =
                           loserAbbr && loserAbbr === match.away
                             ? "truncate font-semibold text-gray-400"
+                            : awayIsTbd
+                              ? "truncate font-semibold text-gray-400"
                             : "truncate font-semibold text-white";
+
+                        const homeScoreClass =
+                          homeIsTbd
+                            ? "shrink-0 font-bold text-gray-400"
+                            : "shrink-0 font-bold text-white";
+
+                        const awayScoreClass =
+                          awayIsTbd
+                            ? "shrink-0 font-bold text-gray-400"
+                            : "shrink-0 font-bold text-white";
 
                         return (
                           <>
@@ -1160,7 +1182,7 @@ export default function Standings() {
                           </span>
                         </div>
 
-                        <span className="shrink-0 font-bold text-white">
+                        <span className={homeScoreClass}>
                           {match.homeScore ?? "-"}
                         </span>
                       </div>
@@ -1183,7 +1205,7 @@ export default function Standings() {
                           </span>
                         </div>
 
-                        <span className="shrink-0 font-bold text-white">
+                        <span className={awayScoreClass}>
                           {match.awayScore ?? "-"}
                         </span>
                       </div>
