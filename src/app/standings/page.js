@@ -647,6 +647,7 @@ function getFinishedMatchLoserAbbr(match) {
 function getPossibleSideTokens({
   side,
   match,
+  standingsData,
   fixtureIdToMatchNumber,
   winnerAbbrToToken,
   loserAbbrToToken,
@@ -655,6 +656,15 @@ function getPossibleSideTokens({
   const teamAbbr = side === "home" ? match.home : match.away;
 
   const tokens = [];
+
+  if (teamAbbr && teamAbbr !== "TBD") {
+    tokens.push(teamAbbr);
+  }
+
+  const teamSeed = getSeedForTeam(standingsData, teamAbbr);
+  if (teamSeed) {
+    tokens.push(teamSeed);
+  }
 
   const sourceFixtureId = getFixtureIdFromApiTeamName(apiName);
 
@@ -726,24 +736,37 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
   assignedMatches.forEach((match) => {
     if (match.round !== "Round of 32") return;
 
-    // Keep canonical assignment when a match number already exists
-    // (from live API/seeding). Re-mapping here can corrupt downstream
-    // winner tokens and produce incorrect placeholders in later rounds.
-    if (match.bracketMatchNumber) return;
+    const resolvedMatchNumber = getRoundOf32MatchNumber(match, standingsData);
 
-    const matchNumber = getRoundOf32MatchNumber(match, standingsData);
+    // If actual teams unambiguously map to a seeded Round of 32 slot,
+    // use that slot even when API provided a different match number.
+    if (resolvedMatchNumber) {
+      match.bracketMatchNumber = resolvedMatchNumber;
 
-    if (!matchNumber) return;
+      if (match.apiFixtureId) {
+        fixtureIdToMatchNumber[Number(match.apiFixtureId)] = resolvedMatchNumber;
+      }
 
-    match.bracketMatchNumber = matchNumber;
+      const winnerAbbr = getFinishedMatchWinnerAbbr(match);
+      const loserAbbr = getFinishedMatchLoserAbbr(match);
+      const numberValue = getMatchNumberValue(resolvedMatchNumber);
+
+      if (winnerAbbr) winnerAbbrToToken[winnerAbbr] = `W${numberValue}`;
+      if (loserAbbr) loserAbbrToToken[loserAbbr] = `L${numberValue}`;
+      return;
+    }
+
+    // Fallback to preassigned value when seed-based inference is unavailable.
+    if (!match.bracketMatchNumber) return;
 
     if (match.apiFixtureId) {
-      fixtureIdToMatchNumber[Number(match.apiFixtureId)] = matchNumber;
+      fixtureIdToMatchNumber[Number(match.apiFixtureId)] =
+        match.bracketMatchNumber;
     }
 
     const winnerAbbr = getFinishedMatchWinnerAbbr(match);
     const loserAbbr = getFinishedMatchLoserAbbr(match);
-    const numberValue = getMatchNumberValue(matchNumber);
+    const numberValue = getMatchNumberValue(match.bracketMatchNumber);
 
     if (winnerAbbr) winnerAbbrToToken[winnerAbbr] = `W${numberValue}`;
     if (loserAbbr) loserAbbrToToken[loserAbbr] = `L${numberValue}`;
@@ -854,6 +877,7 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
         const homeTokens = getPossibleSideTokens({
           side: "home",
           match,
+          standingsData,
           fixtureIdToMatchNumber,
           winnerAbbrToToken,
           loserAbbrToToken,
@@ -862,6 +886,7 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
         const awayTokens = getPossibleSideTokens({
           side: "away",
           match,
+          standingsData,
           fixtureIdToMatchNumber,
           winnerAbbrToToken,
           loserAbbrToToken,
