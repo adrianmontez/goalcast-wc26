@@ -37,6 +37,7 @@ export default function Schedule() {
   const [loadingDetailsByFixture, setLoadingDetailsByFixture] = useState({});
 
   const [openScheduleGroups, setOpenScheduleGroups] = useState({});
+  const [openKnockoutRounds, setOpenKnockoutRounds] = useState({});
 
   const [myVotes, setMyVotes] = useState(() => {
     if (typeof window === "undefined") return {};
@@ -234,6 +235,13 @@ export default function Schedule() {
     setOpenScheduleGroups((current) => ({
       ...current,
       [group]: current[group] === false ? true : false,
+    }));
+  }
+
+  function toggleKnockoutRound(round) {
+    setOpenKnockoutRounds((current) => ({
+      ...current,
+      [round]: current[round] === false ? true : false,
     }));
   }
 
@@ -2004,15 +2012,25 @@ export default function Schedule() {
           {knockoutMatchesByRound.length > 0 ? (
             knockoutMatchesByRound.map((roundData) => (
               <div key={roundData.round} className="space-y-3">
-                <div className="border-b border-gray-700 pb-2">
+                <button
+                  type="button"
+                  onClick={() => toggleKnockoutRound(roundData.round)}
+                  className="flex w-full items-center justify-between border-b border-gray-700 pb-2 text-left"
+                >
                   <h3 className="text-base sm:text-lg font-semibold text-white">
                     {roundData.round}
                   </h3>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
-                  {roundData.matches.map((match) => renderMatchCard(match))}
-                </div>
+                  <span className="text-xs text-gray-300">
+                    {openKnockoutRounds[roundData.round] === false ? "Show" : "Hide"}
+                  </span>
+                </button>
+
+                {openKnockoutRounds[roundData.round] !== false && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+                    {roundData.matches.map((match) => renderMatchCard(match))}
+                  </div>
+                )}
               </div>
             ))
           ) : (
