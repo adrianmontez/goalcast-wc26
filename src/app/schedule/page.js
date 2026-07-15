@@ -883,9 +883,41 @@ export default function Schedule() {
     return match.stage === "knockout";
   }
 
+  function normalizeKnockoutMatchNumber(matchNumber) {
+    if (!matchNumber) return null;
+
+    return String(matchNumber).startsWith("M")
+      ? String(matchNumber)
+      : `M${matchNumber}`;
+  }
+
+  function getAssignedKnockoutMatchNumber(match) {
+    return normalizeKnockoutMatchNumber(
+      knockoutMatchNumberById.get(match.id) || match.matchNumber
+    );
+  }
+
+  function getKnockoutRoundLabel(match) {
+    if (match.stage !== "knockout") return "";
+
+    const assignedMatchNumber = getAssignedKnockoutMatchNumber(match);
+
+    if (assignedMatchNumber) {
+      const seedMatch = knockoutSeeding.find(
+        (item) => item.matchNumber === assignedMatchNumber
+      );
+
+      if (seedMatch?.roundType) {
+        return seedMatch.roundType;
+      }
+    }
+
+    return match.round || "Knockout Round";
+  }
+
   function getMatchCompetitionLabel(match) {
     if (match.stage === "knockout") {
-      return match.round || "Knockout Round";
+      return getKnockoutRoundLabel(match);
     }
 
     return match.group ? `Group ${match.group}` : "";
@@ -902,26 +934,14 @@ export default function Schedule() {
     ];
 
     const grouped = matchesToGroup.reduce((current, match) => {
-      const round = match.round || "Knockout Round";
-      const assignedMatchNumber =
-        knockoutMatchNumberById.get(match.id) || match.matchNumber;
-
-      const normalizedMatchNumber = assignedMatchNumber
-        ? String(assignedMatchNumber).startsWith("M")
-          ? String(assignedMatchNumber)
-          : `M${assignedMatchNumber}`
-        : null;
+      const round = getKnockoutRoundLabel(match);
+      const normalizedMatchNumber = getAssignedKnockoutMatchNumber(match);
 
       if (!current[round]) current[round] = [];
 
       if (normalizedMatchNumber) {
         const existingIndex = current[round].findIndex((item) => {
-          const itemMatchNumber = knockoutMatchNumberById.get(item.id) || item.matchNumber;
-          const normalizedItemMatchNumber = itemMatchNumber
-            ? String(itemMatchNumber).startsWith("M")
-              ? String(itemMatchNumber)
-              : `M${itemMatchNumber}`
-            : null;
+          const normalizedItemMatchNumber = getAssignedKnockoutMatchNumber(item);
 
           return normalizedItemMatchNumber === normalizedMatchNumber;
         });
@@ -945,14 +965,7 @@ export default function Schedule() {
       }
 
       const exists = grouped[round].some((match) => {
-        const assignedMatchNumber =
-          knockoutMatchNumberById.get(match.id) || match.matchNumber;
-
-        const normalizedMatchNumber = assignedMatchNumber
-          ? String(assignedMatchNumber).startsWith("M")
-            ? String(assignedMatchNumber)
-            : `M${assignedMatchNumber}`
-          : null;
+        const normalizedMatchNumber = getAssignedKnockoutMatchNumber(match);
 
         return normalizedMatchNumber === seedMatch.matchNumber;
       });
@@ -1099,6 +1112,17 @@ export default function Schedule() {
     );
   }
 
+  function isRoundCompatibleForAssignment(matchRound, targetRound) {
+    if (matchRound === targetRound) return true;
+
+    const isTitleOrThirdPlaceTarget =
+      targetRound === "Third Place" || targetRound === "Final";
+    const isTitleOrThirdPlaceMatch =
+      matchRound === "Third Place" || matchRound === "Final";
+
+    return isTitleOrThirdPlaceTarget && isTitleOrThirdPlaceMatch;
+  }
+
   const knockoutMatchNumberById = (() => {
     const map = new Map();
     const knockoutMatches = scheduleMatches
@@ -1181,7 +1205,7 @@ export default function Schedule() {
 
       roundSeedMatches.forEach((seedMatch) => {
         const candidate = knockoutMatches.find((match) => {
-          if (match.round !== round) return false;
+          if (!isRoundCompatibleForAssignment(match.round, round)) return false;
           if (match.assignedMatchNumber) return false;
 
           const homeTokens = getPossibleSideTokens(
@@ -1212,7 +1236,11 @@ export default function Schedule() {
       });
 
       knockoutMatches
-        .filter((match) => match.round === round && !match.assignedMatchNumber)
+        .filter(
+          (match) =>
+            isRoundCompatibleForAssignment(match.round, round) &&
+            !match.assignedMatchNumber
+        )
         .forEach((match) => {
           if (match.matchNumber) {
             match.assignedMatchNumber = match.matchNumber;
@@ -1381,7 +1409,7 @@ export default function Schedule() {
   const isTournamentOver = scheduleMatches.some(
     (match) =>
       match.stage === "knockout" &&
-      match.round === "Final" &&
+      getKnockoutRoundLabel(match) === "Final" &&
       (match.status === "finished" ||
         ["FT", "AET", "PEN"].includes(String(match.apiStatusShort || "")))
   );
@@ -1391,7 +1419,8 @@ export default function Schedule() {
   );
 
   function renderMatchCard(match) {
-    const isLiveFinal = match.status === "live" && match.round === "Final";
+    const knockoutRoundLabel = getKnockoutRoundLabel(match);
+    const isLiveFinal = match.status === "live" && knockoutRoundLabel === "Final";
     const isLiveMexicoMatch =
       match.status === "live" && (match.home === "MEX" || match.away === "MEX");
     const isLiveUsaMatch =

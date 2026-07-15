@@ -162,7 +162,64 @@ function findSeededMatchByVenueOrCity(seedMatchesForRound, fixture) {
   );
 }
 
-function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams, seededMatch) {
+function canonicalizeKnockoutRound(apiRound, fixture) {
+  const initialRound = formatRoundLabel(apiRound);
+
+  // Some feeds label both title-deciding matches as "Final".
+  // Use seeded venue/city to separate Final (M104) and Third Place (M103).
+  if (initialRound !== "Final") {
+    return initialRound;
+  }
+
+  const thirdPlaceSeed = knockoutSeeding.find(
+    (seedMatch) => seedMatch.roundType === "Third Place"
+  );
+
+  if (!thirdPlaceSeed) {
+    return initialRound;
+  }
+
+  const fixtureVenueCandidates = [
+    getActualVenueName(fixture.fixture?.venue?.name),
+    getFifaVenueName(fixture.fixture?.venue?.name),
+    fixture.fixture?.venue?.name,
+  ]
+    .map(normalizeVenueText)
+    .filter(Boolean);
+
+  const fixtureCityCandidates = [
+    getVenueCity(fixture.fixture?.venue?.name),
+    fixture.fixture?.venue?.city,
+  ]
+    .map(normalizeVenueText)
+    .filter(Boolean);
+
+  const thirdPlaceVenue = normalizeVenueText(thirdPlaceSeed.venue);
+  const thirdPlaceCity = normalizeVenueText(thirdPlaceSeed.city);
+
+  const venueMatchesThirdPlace =
+    thirdPlaceVenue &&
+    fixtureVenueCandidates.some((candidate) =>
+      isVenueLikeMatch(candidate, thirdPlaceVenue)
+    );
+
+  const cityMatchesThirdPlace =
+    thirdPlaceCity &&
+    fixtureCityCandidates.some((candidate) => candidate === thirdPlaceCity);
+
+  if (venueMatchesThirdPlace || cityMatchesThirdPlace) {
+    return "Third Place";
+  }
+
+  return initialRound;
+}
+
+function buildKnockoutMatchFromApiFixture(
+  apiFixture,
+  staticTeams,
+  seededMatch,
+  roundLabel
+) {
   const homeAbbr =
     getApiFixtureTeamAbbr(apiFixture.teams?.home?.name, staticTeams) || "TBD";
 
@@ -175,7 +232,7 @@ function buildKnockoutMatchFromApiFixture(apiFixture, staticTeams, seededMatch) 
     id: `ko-${apiFixture.fixture?.id}`,
     matchNumber: seededMatch?.matchNumber || null,
     stage: "knockout",
-    round: formatRoundLabel(apiFixture.league?.round),
+    round: roundLabel,
     group: null,
 
     home: homeAbbr,
@@ -382,7 +439,10 @@ export async function GET() {
     const knockoutMatches = knockoutFixtures
       .filter((fixture) => !existingFixtureIds.has(fixture.fixture?.id))
       .map((fixture, globalKnockoutIndex) => {
-        const round = formatRoundLabel(fixture.league?.round);
+        const round = canonicalizeKnockoutRound(
+          fixture.league?.round,
+          fixture
+        );
         const roundIndex = knockoutRoundCounters[round] || 0;
         knockoutRoundCounters[round] = roundIndex + 1;
 
@@ -399,7 +459,8 @@ export async function GET() {
         return buildKnockoutMatchFromApiFixture(
           fixture,
           staticTeams,
-          seededMatch
+          seededMatch,
+          round
         );
       });
 

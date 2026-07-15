@@ -164,6 +164,14 @@ function resolveKnockoutSeedLabel(seed, seedMatch, standingsData, matchResultsBy
   };
 }
 
+function getCanonicalRoundForKnockoutMatch(match) {
+  const seedMatchByNumber =
+    getSeedMatchByMatchNumber(match.bracketMatchNumber) ||
+    getSeedMatchByMatchNumber(match.matchNumber);
+
+  return seedMatchByNumber?.roundType || match.round || "Knockout Round";
+}
+
 function groupKnockoutMatchesByRound(matchesToGroup, standingsData) {
   const roundOrder = [
     "Round of 32",
@@ -199,36 +207,78 @@ function groupKnockoutMatchesByRound(matchesToGroup, standingsData) {
   const assignedMatchNumbers = new Set();
 
   matchesWithNumbers.forEach((match) => {
-    const round = match.round || "Knockout Round";
+    const round = getCanonicalRoundForKnockoutMatch(match);
+    const matchWithCanonicalRound = {
+      ...match,
+      round,
+    };
 
     if (!grouped[round]) grouped[round] = [];
 
-    if (match.bracketMatchNumber) {
+    if (matchWithCanonicalRound.bracketMatchNumber) {
       const existingIndex = grouped[round].findIndex(
-        (item) => item.bracketMatchNumber === match.bracketMatchNumber
+        (item) =>
+          item.bracketMatchNumber === matchWithCanonicalRound.bracketMatchNumber
       );
 
       if (existingIndex >= 0) {
         const currentMatch = grouped[round][existingIndex];
 
-        if (getMatchPriority(match) > getMatchPriority(currentMatch)) {
-          grouped[round][existingIndex] = match;
+        if (
+          getMatchPriority(matchWithCanonicalRound) >
+          getMatchPriority(currentMatch)
+        ) {
+          grouped[round][existingIndex] = matchWithCanonicalRound;
         }
       } else {
-        grouped[round].push(match);
+        grouped[round].push(matchWithCanonicalRound);
       }
     } else {
-      grouped[round].push(match);
+      grouped[round].push(matchWithCanonicalRound);
     }
 
-    if (!match.bracketMatchNumber) return;
+    if (!matchWithCanonicalRound.bracketMatchNumber) return;
 
-    assignedMatchNumbers.add(match.bracketMatchNumber);
+    assignedMatchNumbers.add(matchWithCanonicalRound.bracketMatchNumber);
 
-    matchResultsByNumber[match.bracketMatchNumber] = {
-      winner: getFinishedMatchWinnerAbbr(match),
-      loser: getFinishedMatchLoserAbbr(match),
+    matchResultsByNumber[matchWithCanonicalRound.bracketMatchNumber] = {
+      winner: getFinishedMatchWinnerAbbr(matchWithCanonicalRound),
+      loser: getFinishedMatchLoserAbbr(matchWithCanonicalRound),
     };
+  });
+
+  // For unresolved fixtures, prefer seeded winner/loser paths over feed team names.
+  Object.keys(grouped).forEach((round) => {
+    grouped[round] = grouped[round].map((match) => {
+      if (!match.bracketMatchNumber) return match;
+      if (match.status === "live" || match.status === "finished") return match;
+
+      const seedMatch = getSeedMatchByMatchNumber(match.bracketMatchNumber);
+      if (!seedMatch) return match;
+
+      const seededHome = resolveKnockoutSeedLabel(
+        seedMatch.teamA,
+        seedMatch,
+        standingsData,
+        matchResultsByNumber
+      );
+      const seededAway = resolveKnockoutSeedLabel(
+        seedMatch.teamB,
+        seedMatch,
+        standingsData,
+        matchResultsByNumber
+      );
+
+      if (!seededHome.confirmed || !seededAway.confirmed) return match;
+
+      return {
+        ...match,
+        home: seededHome.label,
+        away: seededAway.label,
+        homeConfirmed: seededHome.confirmed,
+        awayConfirmed: seededAway.confirmed,
+      };
+    });
   });
 
   knockoutSeeding.forEach((seedMatch) => {
@@ -690,6 +740,17 @@ function sideTokensMatchSeed(tokensA, tokensB, seedMatch) {
   );
 }
 
+function isRoundCompatibleForAssignment(matchRound, targetRound) {
+  if (matchRound === targetRound) return true;
+
+  const isTitleOrThirdPlaceTarget =
+    targetRound === "Third Place" || targetRound === "Final";
+  const isTitleOrThirdPlaceMatch =
+    matchRound === "Third Place" || matchRound === "Final";
+
+  return isTitleOrThirdPlaceTarget && isTitleOrThirdPlaceMatch;
+}
+
 function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData) {
   const assignedMatches = knockoutMatchesData.map((match) => ({
     ...match,
@@ -794,7 +855,7 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
     const candidateAssignments = [];
 
     assignedMatches
-      .filter((match) => match.round === round)
+      .filter((match) => isRoundCompatibleForAssignment(match.round, round))
       .forEach((match) => {
         const matchVenueCandidates = [
           match.venue,
@@ -872,7 +933,7 @@ function assignMatchNumbersToKnockoutMatches(knockoutMatchesData, standingsData)
 
       const matchingLiveMatch = assignedMatches.find((match) => {
         if (match.bracketMatchNumber) return false;
-        if (match.round !== round) return false;
+        if (!isRoundCompatibleForAssignment(match.round, round)) return false;
 
         const homeTokens = getPossibleSideTokens({
           side: "home",
