@@ -10,7 +10,7 @@ export const teamMeritsByName = {
     "Argentina": {
         confederation: "COPA",
         confederationRank: 1,
-        fifaRank: 1,
+        fifaRank: 2,
         worldCupWins: 3,
         host: 0,
         debut: 0,
@@ -26,7 +26,7 @@ export const teamMeritsByName = {
     "Austria": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 22,
+        fifaRank: 23,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -34,7 +34,7 @@ export const teamMeritsByName = {
     "Belgium": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 10,
+        fifaRank: 8,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -58,7 +58,7 @@ export const teamMeritsByName = {
     "Canada": {
         confederation: "CONCACAF",
         confederationRank: 0,
-        fifaRank: 32,
+        fifaRank: 30,
         worldCupWins: 0,
         host: 1,
         debut: 0,
@@ -82,7 +82,7 @@ export const teamMeritsByName = {
     "Cote d'Ivoire": {
         confederation: "AFCON",
         confederationRank: 0,
-        fifaRank: 30,
+        fifaRank: 31,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -122,7 +122,7 @@ export const teamMeritsByName = {
     "Ecuador": {
         confederation: "COPA",
         confederationRank: 0,
-        fifaRank: 24,
+        fifaRank: 25,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -130,7 +130,7 @@ export const teamMeritsByName = {
     "Egypt": {
         confederation: "AFCON",
         confederationRank: 0,
-        fifaRank: 26,
+        fifaRank: 24,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -146,7 +146,7 @@ export const teamMeritsByName = {
     "France": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 2,
+        fifaRank: 3,
         worldCupWins: 2,
         host: 0,
         debut: 0,
@@ -178,7 +178,7 @@ export const teamMeritsByName = {
     "Iran": {
         confederation: "AFC",
         confederationRank: 0,
-        fifaRank: 21,
+        fifaRank: 22,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -210,7 +210,7 @@ export const teamMeritsByName = {
     "Mexico": {
         confederation: "CONCACAF",
         confederationRank: 1,
-        fifaRank: 9,
+        fifaRank: 10,
         worldCupWins: 0,
         host: 2,
         debut: 0,
@@ -226,7 +226,7 @@ export const teamMeritsByName = {
     "Netherlands": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 7,
+        fifaRank: 9,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -242,7 +242,7 @@ export const teamMeritsByName = {
     "Norway": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 23,
+        fifaRank: 19,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -258,7 +258,7 @@ export const teamMeritsByName = {
     "Paraguay": {
         confederation: "COPA",
         confederationRank: 0,
-        fifaRank: 37,
+        fifaRank: 34,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -266,7 +266,7 @@ export const teamMeritsByName = {
     "Portugal": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 8,
+        fifaRank: 7,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -314,7 +314,7 @@ export const teamMeritsByName = {
     "South Korea": {
         confederation: "AFC",
         confederationRank: 0,
-        fifaRank: 31,
+        fifaRank: 32,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -322,15 +322,15 @@ export const teamMeritsByName = {
     "Spain": {
         confederation: "EUROS",
         confederationRank: 1,
-        fifaRank: 3,
-        worldCupWins: 1,
+        fifaRank: 1,
+        worldCupWins: 2,
         host: 0,
         debut: 0,
     },
     "Sweden": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 36,
+        fifaRank: 37,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -338,7 +338,7 @@ export const teamMeritsByName = {
     "Switzerland": {
         confederation: "EUROS",
         confederationRank: 0,
-        fifaRank: 16,
+        fifaRank: 14,
         worldCupWins: 0,
         host: 0,
         debut: 0,
@@ -362,7 +362,7 @@ export const teamMeritsByName = {
     "Uruguay": {
         confederation: "COPA",
         confederationRank: 3,
-        fifaRank: 19,
+        fifaRank: 20,
         worldCupWins: 4,
         host: 0,
         debut: 0,
@@ -370,7 +370,7 @@ export const teamMeritsByName = {
     "United States": {
         confederation: "CONCACAF",
         confederationRank: 2,
-        fifaRank: 15,
+        fifaRank: 16,
         worldCupWins: 0,
         host: 3,
         debut: 0,
