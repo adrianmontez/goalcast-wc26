@@ -1384,6 +1384,77 @@ export default function Schedule() {
     return matchDateValue < todayValue;
   }
 
+  function getWorldCupWinnerFromSchedule(matchesData) {
+    const finalMatch = matchesData.find((match) => {
+      const knockoutRoundLabel =
+        match.stage === "knockout"
+          ? getKnockoutRoundLabel(match)
+          : match.round;
+
+      return knockoutRoundLabel === "Final";
+    });
+
+    if (!finalMatch) return null;
+
+    const finalIsComplete =
+      finalMatch.apiStatusShort === "FT" ||
+      finalMatch.apiStatusShort === "AET" ||
+      finalMatch.apiStatusShort === "PEN" ||
+      finalMatch.status === "finished";
+
+    if (!finalIsComplete) return null;
+
+    if (finalMatch.homeWinner === true) {
+      return {
+        abbr: finalMatch.home,
+        name: finalMatch.homeName || finalMatch.home,
+      };
+    }
+
+    if (finalMatch.awayWinner === true) {
+      return {
+        abbr: finalMatch.away,
+        name: finalMatch.awayName || finalMatch.away,
+      };
+    }
+
+    const homeScore = Number(finalMatch.homeScore);
+    const awayScore = Number(finalMatch.awayScore);
+
+    if (homeScore > awayScore) {
+      return {
+        abbr: finalMatch.home,
+        name: finalMatch.homeName || finalMatch.home,
+      };
+    }
+
+    if (awayScore > homeScore) {
+      return {
+        abbr: finalMatch.away,
+        name: finalMatch.awayName || finalMatch.away,
+      };
+    }
+
+    const homePenaltyScore = Number(finalMatch.penaltyHomeScore);
+    const awayPenaltyScore = Number(finalMatch.penaltyAwayScore);
+
+    if (homePenaltyScore > awayPenaltyScore) {
+      return {
+        abbr: finalMatch.home,
+        name: finalMatch.homeName || finalMatch.home,
+      };
+    }
+
+    if (awayPenaltyScore > homePenaltyScore) {
+      return {
+        abbr: finalMatch.away,
+        name: finalMatch.awayName || finalMatch.away,
+      };
+    }
+
+    return null;
+  }
+
   const todayMatches = scheduleMatches
     .filter((match) => isTodayMatch(match))
     .sort((a, b) => dateAndTimeValue(a) - dateAndTimeValue(b));
@@ -1428,6 +1499,8 @@ export default function Schedule() {
   const knockoutMatchesByRound = groupKnockoutMatchesByRound(
     scheduleMatches.filter(isKnockoutMatch)
   );
+
+  const worldCupWinner = getWorldCupWinnerFromSchedule(scheduleMatches);
 
   function renderMatchCard(match) {
     const knockoutRoundLabel = getKnockoutRoundLabel(match);
@@ -1832,11 +1905,46 @@ export default function Schedule() {
       <h1 className="text-2xl sm:text-3xl font-bold mb-2">Match Schedule</h1>
 
       <p className="mb-2 text-xs text-gray-400">
-        {liveDataStatus === "connected"
-          ? `Live data connected${liveUpdatedAt ? ` • Updated ${new Date(liveUpdatedAt).toLocaleTimeString()}` : ""}`
-          : liveDataStatus === "loading"
-            ? "Loading live data..."
-            : "Using saved schedule data."}
+        {worldCupWinner ? (
+          <>
+            Congratulations {worldCupWinner.name}!{" "}
+            {hasTeamFlag(worldCupWinner.abbr) && (
+              <>
+                <Image
+                  src={`/flags/${worldCupWinner.abbr}.png`}
+                  alt={`${worldCupWinner.name} flag`}
+                  width={18}
+                  height={12}
+                  className="inline-block object-cover"
+                />{" "}
+                <Image
+                  src={`/flags/${worldCupWinner.abbr}.png`}
+                  alt={`${worldCupWinner.name} flag`}
+                  width={18}
+                  height={12}
+                  className="inline-block object-cover"
+                />{" "}
+                <Image
+                  src={`/flags/${worldCupWinner.abbr}.png`}
+                  alt={`${worldCupWinner.name} flag`}
+                  width={18}
+                  height={12}
+                  className="inline-block object-cover"
+                />
+              </>
+            )}
+          </>
+        ) : liveDataStatus === "connected" ? (
+          `Live data connected${
+            liveUpdatedAt
+              ? ` • Updated ${new Date(liveUpdatedAt).toLocaleTimeString()}`
+              : ""
+          }`
+        ) : liveDataStatus === "loading" ? (
+          "Loading live data..."
+        ) : (
+          "Using saved schedule data."
+        )}
       </p>
 
       <div className="mb-6 grid w-full grid-cols-3 border border-white text-xs sm:text-sm">
