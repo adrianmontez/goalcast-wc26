@@ -341,77 +341,28 @@ export default function Predict() {
         throw new Error(data?.error || "Could not load live matches.");
       }
 
-      const liveKnockoutMatches = data.matches
-        .filter((match) => match.stage === "knockout")
-        .sort((a, b) => new Date(a.apiDate || a.date || 0) - new Date(b.apiDate || b.date || 0));
-
-      const thirdPlaceSlots = getThirdPlaceMatchMapping() || {};
-      const winnerTokenByTeam = {};
-      const loserTokenByTeam = {};
-      const usedMatchIds = new Set();
       const winnersFromLive = {};
 
-      const knockoutRoundOrder = [
-        "Round of 32",
-        "Round of 16",
-        "Quarterfinals",
-        "Semifinals",
-        "Third Place",
-        "Final",
-      ];
+      data.matches
+        .filter((match) => match.stage === "knockout")
+        .forEach((match) => {
+          const matchNumber =
+            match.bracketMatchNumber ||
+            match.matchNumber ||
+            null;
 
-      knockoutRoundOrder.forEach((roundType) => {
-        const seedMatches = knockoutSeeding.filter((seedMatch) => seedMatch.roundType === roundType);
+          if (!matchNumber) return;
 
-        seedMatches.forEach((seedMatch) => {
-          const expectedSeed = {
-            teamA:
-              roundType === "Round of 32"
-                ? resolveRoundOf32SeedSlot(seedMatch.teamA, seedMatch.matchNumber, thirdPlaceSlots)
-                : seedMatch.teamA,
-            teamB:
-              roundType === "Round of 32"
-                ? resolveRoundOf32SeedSlot(seedMatch.teamB, seedMatch.matchNumber, thirdPlaceSlots)
-                : seedMatch.teamB,
-          };
+          const normalizedMatchNumber = String(matchNumber).startsWith("M")
+            ? String(matchNumber)
+            : `M${matchNumber}`;
 
-          const matchingLiveMatch = liveKnockoutMatches.find((liveMatch) => {
-            if (usedMatchIds.has(liveMatch.id)) return false;
-            if (liveMatch.round !== roundType) return false;
+          const winnerAbbr = getFinishedWinnerAbbr(match);
 
-            const homeTokens = getMatchSideTokens(
-              liveMatch.home,
-              winnerTokenByTeam,
-              loserTokenByTeam
-            );
+          if (!winnerAbbr) return;
 
-            const awayTokens = getMatchSideTokens(
-              liveMatch.away,
-              winnerTokenByTeam,
-              loserTokenByTeam
-            );
-
-            return matchSidesSeed(homeTokens, awayTokens, expectedSeed);
-          });
-
-          if (!matchingLiveMatch) return;
-
-          usedMatchIds.add(matchingLiveMatch.id);
-
-          const winnerAbbr = getFinishedWinnerAbbr(matchingLiveMatch);
-          const loserAbbr = getFinishedLoserAbbr(matchingLiveMatch);
-          const matchNumberValue = Number(seedMatch.matchNumber.slice(1));
-
-          if (winnerAbbr) {
-            winnersFromLive[seedMatch.matchNumber] = winnerAbbr;
-            winnerTokenByTeam[winnerAbbr] = `W${matchNumberValue}`;
-          }
-
-          if (loserAbbr) {
-            loserTokenByTeam[loserAbbr] = `L${matchNumberValue}`;
-          }
+          winnersFromLive[normalizedMatchNumber] = winnerAbbr;
         });
-      });
 
       setBracketWinners(winnersFromLive);
     } catch (error) {

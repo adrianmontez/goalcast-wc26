@@ -746,7 +746,10 @@ export default function Schedule() {
           setMatchDetailsByFixture((current) => ({
             ...current,
             [fixtureId]: {
-              fixture: savedData.snapshot.fixture_json,
+              fixture:
+                savedData.snapshot.fixture_json?.apiFixture ||
+                savedData.snapshot.fixture_json?.fixture ||
+                savedData.snapshot.fixture_json,
               events: savedData.snapshot.events_json || [],
               updatedAt: savedData.snapshot.updated_at,
               source: "archive",

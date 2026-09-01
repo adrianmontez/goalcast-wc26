@@ -175,10 +175,31 @@ function addManualOrderAndSort(apiStandings) {
 export async function GET(request) {
   try {
     if (!process.env.API_FOOTBALL_KEY) {
+      try {
+        const savedResponse = await fetch(
+          `${request.nextUrl.origin}/api/archive/standings`,
+          { cache: "no-store" }
+        );
+
+        const savedData = await savedResponse.json();
+
+        if (savedData.ok && savedData.snapshot) {
+          return NextResponse.json({
+            ok: true,
+            source: "archive",
+            updatedAt: savedData.snapshot.updated_at,
+            standings: savedData.snapshot.standings_json,
+            warning: "Using saved standings because API-Football key is missing.",
+          });
+        }
+      } catch (error) {
+        console.error("Could not load archived standings:", error);
+      }
+
       return NextResponse.json(
         {
           ok: false,
-          error: "Missing API_FOOTBALL_KEY in environment variables.",
+          error: "Missing API_FOOTBALL_KEY in environment variables and no archived standings were found.",
           standings: buildFallbackStandings(),
         },
         { status: 500 }

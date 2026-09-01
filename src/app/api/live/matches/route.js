@@ -1,3 +1,4 @@
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 import { NextResponse } from "next/server";
 import { groups, matches as staticMatches } from "@/data/wc2026Data";
 import { knockoutSeeding } from "@/data/knockoutSeeding";
@@ -323,13 +324,53 @@ function applyKnockoutSeedingData(allMatches) {
   return [...matchesById.values()];
 }
 
+async function getArchivedMatches() {
+  const supabase = createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("finished_match_snapshots")
+    .select("*")
+    .order("api_fixture_id", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data || [])
+    .map((snapshot) => snapshot.fixture_json?.emergencyMatch || null)
+    .filter(Boolean);
+}
+
+async function returnArchivedMatchesIfAvailable() {
+  const archivedMatches = await getArchivedMatches();
+
+  if (archivedMatches.length === 0) {
+    return null;
+  }
+
+  return NextResponse.json({
+    ok: true,
+    source: "archive",
+    updatedAt: new Date().toISOString(),
+    matches: archivedMatches,
+    warning: "Using saved matches because API-Football is unavailable.",
+  });
+}
+
 export async function GET() {
   try {
     if (!process.env.API_FOOTBALL_KEY) {
+      const archivedResponse = await returnArchivedMatchesIfAvailable();
+
+      if (archivedResponse) {
+        return archivedResponse;
+      }
+
       return NextResponse.json(
         {
           ok: false,
-          error: "Missing API_FOOTBALL_KEY in environment variables.",
+          error: "Missing API_FOOTBALL_KEY in environment variables and no archived matches were found.",
+          matches: staticMatches,
         },
         { status: 500 }
       );
@@ -347,6 +388,22 @@ export async function GET() {
     const data = await response.json();
 
     if (!response.ok || data.errors?.length || Object.keys(data.errors || {}).length) {
+      try {
+        const archivedMatches = await getArchivedMatches();
+
+        if (archivedMatches.length > 0) {
+          return NextResponse.json({
+            ok: true,
+            source: "archive",
+            updatedAt: new Date().toISOString(),
+            matches: archivedMatches,
+            warning: "Using saved matches because API-Football failed.",
+          });
+        }
+      } catch (archiveError) {
+        console.error("Could not load archived matches:", archiveError);
+      }
+
       return NextResponse.json(
         {
           ok: false,
@@ -495,6 +552,22 @@ export async function GET() {
       }
     );
   } catch (error) {
+    try {
+      const archivedMatches = await getArchivedMatches();
+
+      if (archivedMatches.length > 0) {
+        return NextResponse.json({
+          ok: true,
+          source: "archive",
+          updatedAt: new Date().toISOString(),
+          matches: archivedMatches,
+          warning: "Using saved matches because API-Football is unavailable.",
+        });
+      }
+    } catch (archiveError) {
+      console.error("Could not load archived matches:", archiveError);
+    }
+
     return NextResponse.json(
       {
         ok: false,
